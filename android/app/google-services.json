@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "424309026429",
+    "project_id": "rescue-stories-7de26",
+    "storage_bucket": "rescue-stories-7de26.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:424309026429:android:c0d9b74e7c981bccef0b14",
+        "android_client_info": {
+          "package_name": "com.dev.rescue_stories"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMeX6b0W-SMCdWSY_mSI5vxWkM__8aXFI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
