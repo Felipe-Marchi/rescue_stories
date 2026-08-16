@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'models/animal_model.dart';
+import 'widgets/animal_card.dart';
 
 // Inicia a execução do aplicativo de forma assíncrona, estabelecendo a
 // comunicação com o motor nativo e configurando os serviços do Firebase.
@@ -26,14 +28,37 @@ class RescueStoriesApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: HomePage(),
     );
   }
 }
 
-// Apresenta a estrutura de tela inicial padrão do aplicativo.
+// Apresenta a tela principal contendo a vitrine de animais disponíveis para resgate.
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  // Inicializa o componente visual da tela principal.
+  HomePage({super.key});
+
+  // Instancia uma lista em memória com dados simulados de animais para exibição.
+  final List<AnimalModel> mockAnimals = [
+    AnimalModel(
+      id: '1',
+      name: 'Rex',
+      description: 'Cachorro dócil e brincalhão, adora correr no parque e interagir com outros cães.',
+      imageUrl: '',
+    ),
+    AnimalModel(
+      id: '2',
+      name: 'Mia',
+      description: 'Gata calma que prefere lugares tranquilos e passar a tarde dormindo no sofá.',
+      imageUrl: '',
+    ),
+    AnimalModel(
+      id: '3',
+      name: 'Thor',
+      description: 'Filhote cheio de energia, ideal para casas com quintal grande e famílias ativas.',
+      imageUrl: '',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +69,12 @@ class HomePage extends StatelessWidget {
         // Define o título de exibição na barra de navegação superior.
         title: const Text('Histórias de Resgate'),
       ),
-      body: const Center(
-        // Centraliza os elementos visuais exibidos no corpo principal da tela.
-        child: Text('Ambiente configurado com Firebase.'),
+      // Constrói uma lista rolável para renderizar os cartões dos animais.
+      body: ListView.builder(
+        itemCount: mockAnimals.length,
+        itemBuilder: (context, index) {
+          return AnimalCard(animal: mockAnimals[index]);
+        },
       ),
     );
   }
