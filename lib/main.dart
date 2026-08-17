@@ -44,19 +44,19 @@ class HomePage extends StatelessWidget {
       id: '1',
       name: 'Rex',
       description: 'Cachorro dócil e brincalhão, adora correr no parque e interagir com outros cães.',
-      imageUrl: '',
+      imageUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=600&auto=format&fit=crop',
     ),
     AnimalModel(
       id: '2',
       name: 'Mia',
       description: 'Gata calma que prefere lugares tranquilos e passar a tarde dormindo no sofá.',
-      imageUrl: '',
+      imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=600&auto=format&fit=crop',
     ),
     AnimalModel(
       id: '3',
       name: 'Thor',
       description: 'Filhote cheio de energia, ideal para casas com quintal grande e famílias ativas.',
-      imageUrl: '',
+      imageUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=600&auto=format&fit=crop',
     ),
   ];
 
