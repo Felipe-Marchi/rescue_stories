@@ -1,0 +1,32 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/animal_model.dart';
+
+// Gerencia a comunicação entre o aplicativo e o banco de dados Firestore.
+class DatabaseService {
+  // Instancia a referência para a coleção de animais no banco de dados.
+  final CollectionReference _animalsCollection = FirebaseFirestore.instance.collection('animals');
+
+  // Recupera a lista de animais armazenada no banco de dados em tempo real.
+  Stream<List<AnimalModel>> getAnimals() {
+    return _animalsCollection.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return AnimalModel(
+          id: doc.id,
+          name: data['name'] ?? '',
+          description: data['description'] ?? '',
+          imageUrl: data['imageUrl'] ?? '',
+        );
+      }).toList();
+    });
+  }
+
+  // Registra as informações de um animal na coleção do banco de dados.
+  Future<void> addAnimal(AnimalModel animal) async {
+    await _animalsCollection.add({
+      'name': animal.name,
+      'description': animal.description,
+      'imageUrl': animal.imageUrl,
+    });
+  }
+}
