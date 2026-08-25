@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'models/animal_model.dart';
 import 'widgets/animal_card.dart';
+import 'screens/add_animal_screen.dart';
 
 // Inicia a execução do aplicativo de forma assíncrona, estabelecendo a
 // comunicação com o motor nativo e configurando os serviços do Firebase.
@@ -75,6 +76,19 @@ class HomePage extends StatelessWidget {
         itemBuilder: (context, index) {
           return AnimalCard(animal: mockAnimals[index]);
         },
+      ),
+      // Renderiza o botão de ação flutuante para acessar a tela de cadastro.
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Executa a navegação para a interface de formulário.
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddAnimalScreen(),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
