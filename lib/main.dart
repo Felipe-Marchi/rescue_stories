@@ -4,7 +4,7 @@ import 'firebase_options.dart';
 import 'models/animal_model.dart';
 import 'widgets/animal_card.dart';
 import 'screens/add_animal_screen.dart';
-import 'services/database_service.dart';
+import 'services/animal_service.dart';
 
 // Inicia a execução do aplicativo de forma assíncrona, estabelecendo a
 // comunicação com o motor nativo e configurando os serviços do Firebase.
@@ -41,7 +41,7 @@ class HomePage extends StatelessWidget {
   HomePage({super.key});
 
   // Instancia o serviço de comunicação com o banco de dados.
-  final DatabaseService _databaseService = DatabaseService();
+  final AnimalService _animalService = AnimalService();
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,7 @@ class HomePage extends StatelessWidget {
       ),
       // Renderiza a lista de animais de forma reativa, escutando as atualizações do banco de dados.
       body: StreamBuilder<List<AnimalModel>>(
-        stream: _databaseService.getAnimals(),
+        stream: _animalService.getAnimals(),
         builder: (context, snapshot) {
           // Exibe um indicador de carregamento enquanto aguarda a resposta do servidor.
           if (snapshot.connectionState == ConnectionState.waiting) {

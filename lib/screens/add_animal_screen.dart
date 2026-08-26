@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
-import '../services/database_service.dart';
+import '../services/animal_service.dart';
 
 // Renderiza a interface de formulário para o cadastro de um animal no sistema.
 class AddAnimalScreen extends StatefulWidget {
@@ -21,7 +21,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
   final _imageUrlController = TextEditingController();
 
   // Instancia o serviço de comunicação com o banco de dados.
-  final _databaseService = DatabaseService();
+  final _animalService = AnimalService();
 
   // Valida os dados inseridos e realiza a persistência no banco de dados.
   void _saveAnimal() {
@@ -33,7 +33,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
         imageUrl: _imageUrlController.text,
       );
 
-      _databaseService.addAnimal(animal);
+      _animalService.addAnimal(animal);
       Navigator.pop(context);
     }
   }
