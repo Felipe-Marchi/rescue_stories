@@ -4,6 +4,7 @@ import 'firebase_options.dart';
 import 'models/animal_model.dart';
 import 'widgets/animal_card.dart';
 import 'screens/add_animal_screen.dart';
+import 'services/database_service.dart';
 
 // Inicia a execução do aplicativo de forma assíncrona, estabelecendo a
 // comunicação com o motor nativo e configurando os serviços do Firebase.
@@ -39,27 +40,8 @@ class HomePage extends StatelessWidget {
   // Inicializa o componente visual da tela principal.
   HomePage({super.key});
 
-  // Instancia uma lista em memória com dados simulados de animais para exibição.
-  final List<AnimalModel> mockAnimals = [
-    AnimalModel(
-      id: '1',
-      name: 'Rex',
-      description: 'Cachorro dócil e brincalhão, adora correr no parque e interagir com outros cães.',
-      imageUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=600&auto=format&fit=crop',
-    ),
-    AnimalModel(
-      id: '2',
-      name: 'Mia',
-      description: 'Gata calma que prefere lugares tranquilos e passar a tarde dormindo no sofá.',
-      imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=600&auto=format&fit=crop',
-    ),
-    AnimalModel(
-      id: '3',
-      name: 'Thor',
-      description: 'Filhote cheio de energia, ideal para casas com quintal grande e famílias ativas.',
-      imageUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=600&auto=format&fit=crop',
-    ),
-  ];
+  // Instancia o serviço de comunicação com o banco de dados.
+  final DatabaseService _databaseService = DatabaseService();
 
   @override
   Widget build(BuildContext context) {
@@ -70,11 +52,34 @@ class HomePage extends StatelessWidget {
         // Define o título de exibição na barra de navegação superior.
         title: const Text('Histórias de Resgate'),
       ),
-      // Constrói uma lista rolável para renderizar os cartões dos animais.
-      body: ListView.builder(
-        itemCount: mockAnimals.length,
-        itemBuilder: (context, index) {
-          return AnimalCard(animal: mockAnimals[index]);
+      // Renderiza a lista de animais de forma reativa, escutando as atualizações do banco de dados.
+      body: StreamBuilder<List<AnimalModel>>(
+        stream: _databaseService.getAnimals(),
+        builder: (context, snapshot) {
+          // Exibe um indicador de carregamento enquanto aguarda a resposta do servidor.
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Exibe uma mensagem de erro caso ocorra falha na comunicação.
+          if (snapshot.hasError) {
+            return const Center(child: Text('Erro ao carregar os dados.'));
+          }
+
+          final animals = snapshot.data ?? [];
+
+          // Exibe uma mensagem amigável caso o banco de dados esteja vazio.
+          if (animals.isEmpty) {
+            return const Center(child: Text('Nenhum animal cadastrado ainda.'));
+          }
+
+          // Constrói uma lista rolável para renderizar os cartões dos animais recuperados.
+          return ListView.builder(
+            itemCount: animals.length,
+            itemBuilder: (context, index) {
+              return AnimalCard(animal: animals[index]);
+            },
+          );
         },
       ),
       // Renderiza o botão de ação flutuante para acessar a tela de cadastro.

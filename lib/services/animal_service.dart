@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/animal_model.dart';
 
-// Gerencia a comunicação entre o aplicativo e o banco de dados Firestore.
-class DatabaseService {
+// Gerencia a comunicação entre o aplicativo e o banco de dados Firestore para a entidade animal.
+class AnimalService {
   // Instancia a referência para a coleção de animais no banco de dados.
   final CollectionReference _animalsCollection = FirebaseFirestore.instance.collection('animals');
 
