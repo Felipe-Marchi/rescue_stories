@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
 import '../services/animal_service.dart';
+import '../widgets/custom_app_bar.dart';
 
 // Renderiza a interface de formulário para o cadastro de um animal no sistema.
 class AddAnimalScreen extends StatefulWidget {
@@ -41,10 +42,8 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // Define o título de exibição na barra de navegação superior.
-        title: const Text('Cadastrar Resgate'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      appBar: CustomAppBar(
+        title: 'Cadastrar Resgate'
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

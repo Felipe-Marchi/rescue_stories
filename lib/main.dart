@@ -5,6 +5,7 @@ import 'models/animal_model.dart';
 import 'widgets/animal_card.dart';
 import 'screens/add_animal_screen.dart';
 import 'services/animal_service.dart';
+import 'widgets/custom_app_bar.dart';
 
 // Inicia a execução do aplicativo de forma assíncrona, estabelecendo a
 // comunicação com o motor nativo e configurando os serviços do Firebase.
@@ -40,40 +41,36 @@ class HomePage extends StatelessWidget {
   // Inicializa o componente visual da tela principal.
   HomePage({super.key});
 
-  // Instancia o serviço de comunicação com o banco de dados.
+  // Instancia o servico de comunicacao com o banco de dados.
   final AnimalService _animalService = AnimalService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // Aplica a cor invertida do esquema de cores na barra superior.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Define o título de exibição na barra de navegação superior.
-        title: const Text('Histórias de Resgate'),
+      // Define uma cor de fundo sutilmente acinzentada para destacar os cartoes brancos.
+      backgroundColor: Colors.grey.shade100,
+      appBar: const CustomAppBar(
+        title: 'Histórias de Resgate',
+        isMainPage: true,
       ),
-      // Renderiza a lista de animais de forma reativa, escutando as atualizações do banco de dados.
+      // Renderiza a lista de animais de forma reativa, escutando as atualizacoes do banco de dados.
       body: StreamBuilder<List<AnimalModel>>(
         stream: _animalService.getAnimals(),
         builder: (context, snapshot) {
-          // Exibe um indicador de carregamento enquanto aguarda a resposta do servidor.
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Exibe uma mensagem de erro caso ocorra falha na comunicação.
           if (snapshot.hasError) {
             return const Center(child: Text('Erro ao carregar os dados.'));
           }
 
           final animals = snapshot.data ?? [];
 
-          // Exibe uma mensagem amigável caso o banco de dados esteja vazio.
           if (animals.isEmpty) {
             return const Center(child: Text('Nenhum animal cadastrado ainda.'));
           }
 
-          // Constrói uma lista rolável para renderizar os cartões dos animais recuperados.
           return ListView.builder(
             itemCount: animals.length,
             itemBuilder: (context, index) {
@@ -82,10 +79,9 @@ class HomePage extends StatelessWidget {
           );
         },
       ),
-      // Renderiza o botão de ação flutuante para acessar a tela de cadastro.
+      // Renderiza o botao administrativo para adicionar novos resgates.
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Executa a navegação para a interface de formulário.
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -93,6 +89,9 @@ class HomePage extends StatelessWidget {
             ),
           );
         },
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        elevation: 4.0,
         child: const Icon(Icons.add),
       ),
     );
