@@ -42,41 +42,117 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Cadastrar Resgate'
+      backgroundColor: Colors.white,
+      appBar: const CustomAppBar(
+        title: 'Cadastrar Animal',
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Renderiza o campo de entrada para o nome do animal.
+              // Renderiza o campo de entrada formatado para o nome.
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nome do Animal'),
+                decoration: InputDecoration(
+                  labelText: 'Nome do Animal',
+                  prefixIcon: const Icon(Icons.pets, color: Colors.green),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: const BorderSide(color: Colors.green, width: 2.0),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
               ),
-              const SizedBox(height: 16.0),
-              // Renderiza o campo de entrada para a descrição do animal.
+              const SizedBox(height: 20.0),
+
+              // Renderiza o campo de entrada formatado para textos longos.
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Descrição'),
-                maxLines: 3,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  labelText: 'Descrição ou História',
+                  alignLabelWithHint: true,
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.only(bottom: 60.0),
+                    child: Icon(Icons.description_outlined, color: Colors.green),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: const BorderSide(color: Colors.green, width: 2.0),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
               ),
-              const SizedBox(height: 16.0),
-              // Renderiza o campo de entrada para a URL da imagem.
+              const SizedBox(height: 20.0),
+
+              // Renderiza o campo de entrada formatado para captura de links.
               TextFormField(
                 controller: _imageUrlController,
-                decoration: const InputDecoration(labelText: 'URL da Imagem (Link)'),
+                keyboardType: TextInputType.url,
+                decoration: InputDecoration(
+                  labelText: 'URL da Foto',
+                  prefixIcon: const Icon(Icons.add_photo_alternate_outlined, color: Colors.green),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: const BorderSide(color: Colors.green, width: 2.0),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
               ),
-              const SizedBox(height: 32.0),
-              // Renderiza o botão de ação para submissão do formulário.
+              const SizedBox(height: 40.0),
+
+              // Renderiza o botão principal com proporções expandidas e cantos arredondados.
               ElevatedButton(
                 onPressed: _saveAnimal,
-                child: const Text('Salvar Cadastro'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+                child: const Text(
+                  'Salvar',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
