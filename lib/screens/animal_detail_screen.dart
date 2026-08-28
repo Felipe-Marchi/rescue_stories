@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
+import '../widgets/custom_app_bar.dart';
+import '../widgets/custom_network_image.dart';
 
 // Renderiza a interface de exibição detalhada dos dados de um animal específico.
 class AnimalDetailScreen extends StatelessWidget {
@@ -14,21 +16,19 @@ class AnimalDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // Define o nome do animal como título da barra superior.
-        title: Text(animal.name),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      backgroundColor: Colors.white,
+      appBar: const CustomAppBar(
+        title: 'Detalhes',
       ),
       // Renderiza o conteúdo em formato de rolagem vertical.
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Exibe a imagem em destaque ocupando grande parte superior da tela.
-            Image.network(
-              animal.imageUrl,
+            // Utiliza o componente encapsulado para renderizar a imagem em destaque com proteção contra falhas.
+            CustomNetworkImage(
+              imageUrl: animal.imageUrl,
               height: 300.0,
-              fit: BoxFit.cover,
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),

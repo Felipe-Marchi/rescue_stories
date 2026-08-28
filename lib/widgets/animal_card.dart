@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
 import '../screens/animal_detail_screen.dart';
+import 'custom_network_image.dart';
 
 // Renderiza as informações de um animal em um contêiner visual com elevação e interação de clique.
 class AnimalCard extends StatelessWidget {
@@ -33,11 +34,10 @@ class AnimalCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Renderiza a imagem do animal a partir de uma URL remota.
-            Image.network(
-              animal.imageUrl,
-              height: 180.0,
-              fit: BoxFit.cover,
+            // Delega a renderização e o tratamento de erro para o componente customizado.
+            CustomNetworkImage(
+              imageUrl: animal.imageUrl,
+              height: 200.0,
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),

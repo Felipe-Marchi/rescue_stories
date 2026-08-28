@@ -39,6 +39,28 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
     }
   }
 
+  // Gera a estrutura visual padronizada para os campos de entrada de texto.
+  InputDecoration _buildInputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      alignLabelWithHint: true,
+      filled: true,
+      fillColor: Colors.grey.shade50,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Colors.green, width: 2.0),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,25 +78,8 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
               // Renderiza o campo de entrada formatado para o nome.
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nome do Animal',
-                  prefixIcon: const Icon(Icons.pets, color: Colors.green),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: const BorderSide(color: Colors.green, width: 2.0),
-                  ),
-                ),
-                validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
+                decoration: _buildInputDecoration('Nome do Animal'),
+                validator: (value) => value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 20.0),
 
@@ -82,59 +87,20 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 4,
-                decoration: InputDecoration(
-                  labelText: 'Descrição ou História',
-                  alignLabelWithHint: true,
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.only(bottom: 60.0),
-                    child: Icon(Icons.description_outlined, color: Colors.green),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: const BorderSide(color: Colors.green, width: 2.0),
-                  ),
-                ),
-                validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
+                decoration: _buildInputDecoration('Descrição ou História'),
+                validator: (value) => value == null || value.isEmpty ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 20.0),
 
-              // Renderiza o campo de entrada formatado para captura de links.
+              // Renderiza o campo de entrada opcional formatado para captura de links.
               TextFormField(
                 controller: _imageUrlController,
                 keyboardType: TextInputType.url,
-                decoration: InputDecoration(
-                  labelText: 'URL da Foto',
-                  prefixIcon: const Icon(Icons.add_photo_alternate_outlined, color: Colors.green),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: const BorderSide(color: Colors.green, width: 2.0),
-                  ),
-                ),
-                validator: (value) => value!.isEmpty ? 'Campo obrigatório' : null,
+                decoration: _buildInputDecoration('URL da Foto (Opcional)'),
               ),
               const SizedBox(height: 40.0),
 
-              // Renderiza o botão principal com proporções expandidas e cantos arredondados.
+              // Renderiza o botão principal de salvar.
               ElevatedButton(
                 onPressed: _saveAnimal,
                 style: ElevatedButton.styleFrom(
