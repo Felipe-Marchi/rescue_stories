@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../widgets/custom_app_bar.dart';
+import '../widgets/custom_text_field.dart';
+import '../widgets/primary_button.dart';
 
 // Renderiza a interface visual para autenticacao de usuarios no sistema.
 class LoginScreen extends StatefulWidget {
@@ -21,9 +24,15 @@ class _LoginScreenState extends State<LoginScreen> {
   // Instancia o servico responsavel pela autenticacao no Firebase.
   final _authService = AuthService();
 
+  bool _isLoading = false;
+
   // Executa a tentativa de login utilizando os dados inseridos pelo usuario.
   Future<void> loginUser() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
       try {
         await _authService.signInWithEmailAndPassword(
           _emailController.text.trim(),
@@ -43,6 +52,12 @@ class _LoginScreenState extends State<LoginScreen> {
             const SnackBar(content: Text('Falha ao realizar login. Verifique suas credenciais.')),
           );
         }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -50,50 +65,38 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Acesso ao Sistema'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      backgroundColor: Colors.white,
+      appBar: const CustomAppBar(
+        title: 'Acesso ao Sistema',
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Renderiza o campo de entrada formatado para enderecos de email.
-              TextFormField(
+              CustomTextField(
                 controller: _emailController,
+                label: 'E-mail',
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'E-mail',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) => value!.isEmpty ? 'Informe seu e-mail' : null,
+                isRequired: true,
               ),
               const SizedBox(height: 16.0),
-              // Renderiza o campo de entrada de texto oculto para senhas.
-              TextFormField(
+
+              CustomTextField(
                 controller: _passwordController,
+                label: 'Senha',
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Senha',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) => value!.isEmpty ? 'Informe sua senha' : null,
+                isRequired: true,
               ),
-              const SizedBox(height: 24.0),
-              // Renderiza o botao de acao principal para submissao do formulario.
-              ElevatedButton(
+              const SizedBox(height: 32.0),
+
+              PrimaryButton(
+                text: 'Entrar',
+                isLoading: _isLoading,
                 onPressed: loginUser,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                ),
-                child: const Text(
-                  'Entrar',
-                  style: TextStyle(fontSize: 18.0),
-                ),
               ),
             ],
           ),

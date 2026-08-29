@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
+import '../widgets/primary_button.dart';
 
 // Renderiza a interface de exibição detalhada dos dados de um animal específico.
 class AnimalDetailScreen extends StatelessWidget {
@@ -20,37 +21,47 @@ class AnimalDetailScreen extends StatelessWidget {
       appBar: const CustomAppBar(
         title: 'Detalhes',
       ),
-      // Renderiza o conteúdo em formato de rolagem vertical.
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Utiliza o componente encapsulado para renderizar a imagem em destaque com proteção contra falhas.
             CustomNetworkImage(
               imageUrl: animal.imageUrl,
               height: 300.0,
             ),
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(24.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Renderiza o nome completo em formato de título primário.
                   Text(
                     animal.name,
                     style: const TextStyle(
                       fontSize: 28.0,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 16.0),
-                  // Exibe a descrição completa do animal sem limitação de linhas.
                   Text(
                     animal.description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16.0,
-                      height: 1.5,
+                      height: 1.6,
+                      color: Colors.grey.shade800,
                     ),
+                  ),
+                  const SizedBox(height: 40.0),
+
+                  // Instancia o componente padronizado para a acao de interesse do usuario.
+                  PrimaryButton(
+                    text: 'Quero Adotar',
+                    onPressed: () {
+                      // O fluxo de contato com a ONG sera implementado aqui futuramente.
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Funcionalidade de adoção em breve!')),
+                      );
+                    },
                   ),
                 ],
               ),
