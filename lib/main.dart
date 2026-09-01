@@ -3,9 +3,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'models/animal_model.dart';
 import 'widgets/animal_card.dart';
-import 'screens/add_animal_screen.dart';
 import 'services/animal_service.dart';
 import 'widgets/custom_app_bar.dart';
+import 'screens/main_navigation_screen.dart';
 
 // Inicia a execução do aplicativo de forma assíncrona, estabelecendo a
 // comunicação com o motor nativo e configurando os serviços do Firebase.
@@ -31,7 +31,7 @@ class RescueStoriesApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: HomePage(),
+      home: MainNavigationScreen(),
     );
   }
 }
@@ -78,21 +78,6 @@ class HomePage extends StatelessWidget {
             },
           );
         },
-      ),
-      // Renderiza o botao administrativo para adicionar novos resgates.
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddAnimalScreen(),
-            ),
-          );
-        },
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        elevation: 4.0,
-        child: const Icon(Icons.add),
       ),
     );
   }
