@@ -6,7 +6,9 @@ import '../widgets/primary_button.dart';
 
 // Renderiza a interface visual para o cadastro de novos usuarios no sistema.
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final bool isAdoptionFlow;
+
+  const RegisterScreen({super.key, this.isAdoptionFlow = false});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -43,8 +45,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Conta criada com sucesso!')),
           );
-          // Retorna para a tela de login apos o cadastro
-          Navigator.pop(context);
+
+          // O comando ..pop()..pop() fecha o Cadastro e o Login na mesma acao
+          Navigator.of(context)..pop()..pop();
         }
       } catch (e) {
         if (mounted) {
@@ -156,27 +159,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 32.0),
 
-              const Text(
-                'Qual é o seu objetivo?',
-                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8.0),
+              if (!widget.isAdoptionFlow) ...[
+                const Text(
+                  'Qual é o seu objetivo?',
+                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8.0),
 
-              _buildRoleCard(
-                title: 'Quero adotar um animal',
-                description: 'Navegue, favorite e entre em contato com ONGs.',
-                icon: Icons.pets,
-                value: 'adopter',
-              ),
-              const SizedBox(height: 12.0),
+                _buildRoleCard(
+                  title: 'Quero adotar um animal',
+                  description: 'Navegue, favorite e entre em contato com ONGs.',
+                  icon: Icons.pets,
+                  value: 'adopter',
+                ),
+                const SizedBox(height: 12.0),
 
-              _buildRoleCard(
-                title: 'Sou representante de ONG',
-                description: 'Cadastre resgates e gerencie processos de adoção.',
-                icon: Icons.business,
-                value: 'ngo_rep',
-              ),
-              const SizedBox(height: 32.0),
+                _buildRoleCard(
+                  title: 'Sou representante de ONG',
+                  description: 'Cadastre resgates e gerencie processos de adoção.',
+                  icon: Icons.business,
+                  value: 'ngo_rep',
+                ),
+                const SizedBox(height: 32.0),
+              ],
 
               PrimaryButton(
                 text: 'Cadastrar',

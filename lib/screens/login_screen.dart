@@ -7,7 +7,9 @@ import 'register_screen.dart';
 
 // Renderiza a interface visual para autenticacao de usuarios no sistema.
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final bool isAdoptionFlow;
+
+  const LoginScreen({super.key, this.isAdoptionFlow = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -45,6 +47,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Login realizado com sucesso!')),
           );
+
+          // Fecha a tela de login e devolve o usuário para onde ele estava
+          Navigator.pop(context);
         }
       } catch (e) {
         // Exibe um alerta visual caso as credenciais sejam invalidas ou ocorra falha na rede.
@@ -107,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const RegisterScreen(),
+                      builder: (context) => RegisterScreen(isAdoptionFlow: widget.isAdoptionFlow),
                     ),
                   );
                 },

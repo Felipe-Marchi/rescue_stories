@@ -44,6 +44,15 @@ class ProfileScreen extends StatelessWidget {
               text: 'Sair',
               onPressed: () async {
                 await _authService.signOut();
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Sessão encerrada com sucesso!')),
+                  );
+
+                  // Remove a tela de perfil, voltando para o inicio
+                  Navigator.pop(context);
+                }
               },
             ),
           ],

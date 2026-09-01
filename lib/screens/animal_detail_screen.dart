@@ -4,7 +4,7 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
 import '../widgets/primary_button.dart';
 import '../services/auth_service.dart';
-import 'auth_gate.dart';
+import 'login_screen.dart';
 
 // Renderiza a interface de exibição detalhada dos dados de um animal específico.
 class AnimalDetailScreen extends StatelessWidget {
@@ -64,10 +64,10 @@ class AnimalDetailScreen extends StatelessWidget {
                         // Forca o redirecionamento para o login/cadastro caso seja um visitante.
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => AuthGate()),
+                          MaterialPageRoute(builder: (context) => const LoginScreen(isAdoptionFlow: true)),
                         );
                       } else {
-                        // Fluxo liberado para usuarios autenticados.
+                        // Fluxo liberado para usuarios autenticados.+
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Funcionalidade de adoção em breve!')),
                         );

@@ -5,7 +5,9 @@ import 'models/animal_model.dart';
 import 'widgets/animal_card.dart';
 import 'services/animal_service.dart';
 import 'widgets/custom_app_bar.dart';
-import 'screens/auth_gate.dart';
+import 'screens/login_screen.dart';
+import 'screens/profile_screen.dart';
+import 'services/auth_service.dart';
 
 // Inicia a execução do aplicativo de forma assíncrona, estabelecendo a
 // comunicação com o motor nativo e configurando os serviços do Firebase.
@@ -43,6 +45,7 @@ class HomePage extends StatelessWidget {
 
   // Instancia o servico de comunicacao com o banco de dados.
   final AnimalService _animalService = AnimalService();
+  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -57,10 +60,17 @@ class HomePage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.account_circle, color: Colors.green, size: 32.0),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AuthGate()),
-              );
+              if (_authService.currentUser == null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfileScreen()),
+                );
+              }
             },
           ),
           const SizedBox(width: 8.0),
