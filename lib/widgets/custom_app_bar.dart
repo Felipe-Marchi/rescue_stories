@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool isMainPage;
+  final List<Widget>? actions;
 
   // Inicializa o componente definindo, por padrao, que nao se trata da tela principal.
   const CustomAppBar({
     super.key,
     required this.title,
     this.isMainPage = false,
+    this.actions,
   });
 
   @override
@@ -45,6 +47,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
       ),
+      actions: actions,
     );
   }
 

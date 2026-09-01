@@ -5,7 +5,7 @@ import 'models/animal_model.dart';
 import 'widgets/animal_card.dart';
 import 'services/animal_service.dart';
 import 'widgets/custom_app_bar.dart';
-import 'screens/main_navigation_screen.dart';
+import 'screens/auth_gate.dart';
 
 // Inicia a execução do aplicativo de forma assíncrona, estabelecendo a
 // comunicação com o motor nativo e configurando os serviços do Firebase.
@@ -31,7 +31,7 @@ class RescueStoriesApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: MainNavigationScreen(),
+      home: HomePage(),
     );
   }
 }
@@ -49,9 +49,22 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       // Define uma cor de fundo sutilmente acinzentada para destacar os cartoes brancos.
       backgroundColor: Colors.grey.shade100,
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: 'Histórias de Resgate',
         isMainPage: true,
+        // Injeta o atalho para o perfil/login na barra superior da pagina inicial.
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle, color: Colors.green, size: 32.0),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AuthGate()),
+              );
+            },
+          ),
+          const SizedBox(width: 8.0),
+        ],
       ),
       // Renderiza a lista de animais de forma reativa, escutando as atualizacoes do banco de dados.
       body: StreamBuilder<List<AnimalModel>>(

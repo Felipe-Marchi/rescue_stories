@@ -9,6 +9,9 @@ class AuthService {
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
+  // Retorna a instancia do usuario atualmente autenticado de forma sincrona.
+  User? get currentUser => _firebaseAuth.currentUser;
+
   Future<UserCredential> registerWithEmailAndPassword({
     required String name,
     required String email,

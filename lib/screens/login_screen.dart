@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
+import 'register_screen.dart';
 
 // Renderiza a interface visual para autenticacao de usuarios no sistema.
 class LoginScreen extends StatefulWidget {
@@ -97,6 +98,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 text: 'Entrar',
                 isLoading: _isLoading,
                 onPressed: loginUser,
+              ),
+
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RegisterScreen(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Não tem uma conta? Cadastre-se',
+                  style: TextStyle(
+                    color: Colors.green.shade700,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16.0,
+                  ),
+                ),
               ),
             ],
           ),
