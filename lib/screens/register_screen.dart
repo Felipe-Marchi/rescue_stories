@@ -62,6 +62,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  Widget _buildRoleCard({
+    required String title,
+    required String description,
+    required IconData icon,
+    required String value,
+  }) {
+    final isSelected = _selectedRole == value;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedRole = value;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.green.shade50 : Colors.white,
+          border: Border.all(
+            color: isSelected ? Colors.green : Colors.grey.shade300,
+            width: 2.0,
+          ),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 36, color: isSelected ? Colors.green : Colors.grey.shade400),
+            const SizedBox(width: 16.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.green.shade800 : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4.0),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 13.0,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,30 +162,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 8.0),
 
-              // Renderiza a selecao do tipo de perfil de forma clara.
-              RadioListTile<String>(
-                title: const Text('Quero adotar um animal'),
+              _buildRoleCard(
+                title: 'Quero adotar um animal',
+                description: 'Navegue, favorite e entre em contato com ONGs.',
+                icon: Icons.pets,
                 value: 'adopter',
-                groupValue: _selectedRole,
-                activeColor: Colors.green,
-                contentPadding: EdgeInsets.zero,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedRole = value!;
-                  });
-                },
               ),
-              RadioListTile<String>(
-                title: const Text('Sou representante de ONG'),
+              const SizedBox(height: 12.0),
+
+              _buildRoleCard(
+                title: 'Sou representante de ONG',
+                description: 'Cadastre resgates e gerencie processos de adoção.',
+                icon: Icons.business,
                 value: 'ngo_rep',
-                groupValue: _selectedRole,
-                activeColor: Colors.green,
-                contentPadding: EdgeInsets.zero,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedRole = value!;
-                  });
-                },
               ),
               const SizedBox(height: 32.0),
 

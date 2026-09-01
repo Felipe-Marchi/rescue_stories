@@ -70,14 +70,16 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: const CustomAppBar(
         title: 'Acesso ao Sistema',
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 32.0),
+
               CustomTextField(
                 controller: _emailController,
                 label: 'E-mail',
