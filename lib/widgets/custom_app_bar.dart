@@ -19,7 +19,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      centerTitle: true,
+      centerTitle: false,
       // Define a cor da seta de voltar nativa.
       iconTheme: const IconThemeData(color: Colors.black87),
       title: Row(
