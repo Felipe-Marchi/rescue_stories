@@ -52,8 +52,30 @@ class AnimalCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8.0),
-                  // Exibe a descrição do animal com limite máximo de duas linhas.
+                  const SizedBox(height: 6.0),
+
+                  // Renderiza o nome da instituicao com um icone indicativo.
+                  Row(
+                    children: [
+                      const Icon(Icons.business, size: 14.0, color: Colors.green),
+                      const SizedBox(width: 4.0),
+                      Expanded(
+                        child: Text(
+                          animal.ngoName,
+                          style: TextStyle(
+                            fontSize: 13.0,
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12.0),
+
+                  // Exibe a descricao do animal com limite maximo de duas linhas.
                   Text(
                     animal.description,
                     maxLines: 2,

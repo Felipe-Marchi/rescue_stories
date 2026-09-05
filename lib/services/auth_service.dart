@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/user_status.dart';
+import '../models/user_role.dart';
 
 // Gerencia a comunicação de autenticação e controle de sessão de usuários no Firebase.
 class AuthService {
@@ -25,7 +27,7 @@ class AuthService {
     );
 
     // Define o status inicial baseado na funcao escolhida
-    final status = role == 'ngo_rep' ? 'pending_ngo' : 'active';
+    final status = role == UserRole.ngoRep.name ? UserStatus.pendingSetup.name : UserStatus.active.name;
 
     // Grava o documento de perfil na colecao 'users'
     await _firestore.collection('users').doc(credential.user!.uid).set({
@@ -33,6 +35,7 @@ class AuthService {
       'email': email,
       'role': role,
       'status': status,
+      'ngoId': null,
       'createdAt': FieldValue.serverTimestamp(),
     });
 
@@ -50,5 +53,13 @@ class AuthService {
   // Encerra a sessão do usuário atualmente autenticado no aplicativo.
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
+  }
+
+  // Atualiza o documento do usuario com o identificador da instituicao e altera o status de acesso.
+  Future<void> linkUserToNgo(String userId, String ngoId) async {
+    await _firestore.collection('users').doc(userId).update({
+      'ngoId': ngoId,
+      'status': UserStatus.underReview.name,
+    });
   }
 }

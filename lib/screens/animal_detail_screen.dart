@@ -54,6 +54,48 @@ class AnimalDetailScreen extends StatelessWidget {
                       color: Colors.grey.shade800,
                     ),
                   ),
+                  const SizedBox(height: 24.0),
+
+                  // Exibe a ONG usando o dado desnormalizado no modelo.
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(8.0),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.business, color: Colors.green, size: 28.0),
+                        const SizedBox(width: 16.0),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Instituição Responsável',
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              const SizedBox(height: 4.0),
+                              Text(
+                                animal.ngoName,
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Espacamento antes do botao principal
                   const SizedBox(height: 40.0),
 
                   // Instancia o componente padronizado para a acao de interesse do usuario.

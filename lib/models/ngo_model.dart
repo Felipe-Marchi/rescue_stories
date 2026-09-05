@@ -6,6 +6,7 @@ class NgoModel {
   final String email;
   final String phone;
   final String address;
+  final String ownerId;
 
   // Inicializa os dados da organização
   NgoModel({
@@ -15,5 +16,6 @@ class NgoModel {
     required this.email,
     required this.phone,
     required this.address,
+    required this.ownerId,
   });
 }

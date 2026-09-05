@@ -3,6 +3,8 @@ import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
+import '../models/user_role.dart';
+import 'ngo_setup_screen.dart';
 
 // Renderiza a interface visual para o cadastro de novos usuarios no sistema.
 class RegisterScreen extends StatefulWidget {
@@ -24,7 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _authService = AuthService();
 
   bool _isLoading = false;
-  String _selectedRole = 'adopter'; // 'adopter' ou 'ngo_rep'
+  String _selectedRole = UserRole.adopter.name;
 
   // Executa o registro, gravando a autenticacao e o perfil no banco de dados.
   Future<void> _registerUser() async {
@@ -42,12 +44,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Conta criada com sucesso!')),
-          );
-
-          // O comando ..pop()..pop() fecha o Cadastro e o Login na mesma acao
-          Navigator.of(context)..pop()..pop();
+          if (_selectedRole == UserRole.ngoRep.name) {
+            // Direciona o representante para o preenchimento obrigatorio dos dados da ONG
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Conta criada! Finalize os dados da instituição.')),
+            );
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const NgoSetupScreen()),
+                  (route) => route.isFirst,
+            );
+          } else {
+            // Retorna o adotante para a tela anterior
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Conta criada com sucesso!')),
+            );
+            Navigator.of(context)..pop()..pop();
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -170,7 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   title: 'Quero adotar um animal',
                   description: 'Navegue, favorite e entre em contato com ONGs.',
                   icon: Icons.pets,
-                  value: 'adopter',
+                  value: UserRole.adopter.name,
                 ),
                 const SizedBox(height: 12.0),
 
@@ -178,7 +191,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   title: 'Sou representante de ONG',
                   description: 'Cadastre resgates e gerencie processos de adoção.',
                   icon: Icons.business,
-                  value: 'ngo_rep',
+                  value: UserRole.ngoRep.name,
                 ),
                 const SizedBox(height: 32.0),
               ],

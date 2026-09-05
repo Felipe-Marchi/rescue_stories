@@ -16,6 +16,8 @@ class AnimalService {
           name: data['name'] ?? '',
           description: data['description'] ?? '',
           imageUrl: data['imageUrl'] ?? '',
+          ngoId: data['ngoId'] ?? '',
+          ngoName: data['ngoName'] ?? '',
         );
       }).toList();
     });
@@ -27,6 +29,8 @@ class AnimalService {
       'name': animal.name,
       'description': animal.description,
       'imageUrl': animal.imageUrl,
+      'ngoId': animal.ngoId,
+      'ngoName': animal.ngoName,
     });
   }
 }

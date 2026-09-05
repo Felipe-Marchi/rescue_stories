@@ -7,14 +7,17 @@ class NgoService {
   final CollectionReference _ngosCollection = FirebaseFirestore.instance.collection('ngos');
 
   // Registra as informações institucionais de uma organização.
-  Future<void> addNgo(NgoModel ngo) async {
-    await _ngosCollection.add({
+  Future<String> addNgo(NgoModel ngo) async {
+    final docRef = await _ngosCollection.add({
       'name': ngo.name,
       'document': ngo.document,
       'email': ngo.email,
       'phone': ngo.phone,
       'address': ngo.address,
+      'ownerId': ngo.ownerId,
     });
+
+    return docRef.id;
   }
 
   // Recupera a lista de organizações armazenadas no banco de dados em tempo real.
@@ -29,6 +32,7 @@ class NgoService {
           email: data['email'] ?? '',
           phone: data['phone'] ?? '',
           address: data['address'] ?? '',
+          ownerId: data['ownerId'] ?? '',
         );
       }).toList();
     });

@@ -7,6 +7,8 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/image_picker_widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/auth_service.dart';
 
 // Renderiza a interface de formulario para o cadastro de um animal no sistema.
 class AddAnimalScreen extends StatefulWidget {
@@ -25,11 +27,13 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
 
   final _animalService = AnimalService();
   final _storageService = StorageService();
+  final _authService = AuthService();
+  final _firestore = FirebaseFirestore.instance;
 
   File? _selectedImage;
   bool _isLoading = false;
 
-  // Valida os dados, envia o arquivo para a nuvem e realiza a persistencia no banco de dados.
+  // Valida os dados, realiza o upload da imagem, recupera o vinculo institucional e persiste o cadastro.
   Future<void> _saveAnimal() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -43,11 +47,30 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
         imageUrl = await _storageService.uploadAnimalImage(_selectedImage!, fileName);
       }
 
+      // Consulta o documento do usuario atual para obter o identificador da ONG vinculada.
+      final user = _authService.currentUser;
+      String currentNgoId = "";
+      String currentNgoName = "";
+
+      if (user != null)
+      {
+        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        currentNgoId = userDoc.data()?['ngoId'] ?? '';
+
+        // Busca os detalhes institucionais para gravar no perfil do animal.
+        if (currentNgoId.isNotEmpty) {
+          final ngoDoc = await _firestore.collection('ngos').doc(currentNgoId).get();
+          currentNgoName = ngoDoc.data()?['name'] ?? 'ONG sem nome';
+        }
+      }
+
       final animal = AnimalModel(
         id: '',
         name: _nameController.text,
         description: _descriptionController.text,
         imageUrl: imageUrl,
+        ngoId: currentNgoId,
+        ngoName: currentNgoName,
       );
 
       await _animalService.addAnimal(animal);
