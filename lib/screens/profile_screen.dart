@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/user_role.dart';
+import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/primary_button.dart';
@@ -44,12 +44,12 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 32.0),
 
             if (user != null)
-              FutureBuilder<String?>(
-                future: _authService.getUserRole(user.uid),
+              FutureBuilder<UserModel?>(
+                future: _authService.getUserProfile(user.uid),
                 builder: (context, snapshot) {
-                  final role = snapshot.data;
+                  final userModel = snapshot.data;
 
-                  if (role == UserRole.admin.name) {
+                  if (userModel != null && userModel.isAdmin) {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 32.0),
                       padding: const EdgeInsets.all(16.0),

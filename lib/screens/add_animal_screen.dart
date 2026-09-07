@@ -7,7 +7,6 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/image_picker_widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 
 // Renderiza a interface de formulario para o cadastro de um animal no sistema.
@@ -28,7 +27,6 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
   final _animalService = AnimalService();
   final _storageService = StorageService();
   final _authService = AuthService();
-  final _firestore = FirebaseFirestore.instance;
 
   File? _selectedImage;
   bool _isLoading = false;
@@ -47,13 +45,13 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
         imageUrl = await _storageService.uploadAnimalImage(_selectedImage!, fileName);
       }
 
-      // Consulta o documento do usuario atual para obter o identificador da ONG vinculada.
+      // Consulta o perfil do usuario atual para obter o identificador da ONG vinculada.
       final user = _authService.currentUser;
       String currentNgoId = "";
 
       if (user != null) {
-        final userDoc = await _firestore.collection('users').doc(user.uid).get();
-        currentNgoId = userDoc.data()?['ngoId'] ?? '';
+        final userModel = await _authService.getUserProfile(user.uid);
+        currentNgoId = userModel?.ngoId ?? '';
       }
 
       final animal = AnimalModel(

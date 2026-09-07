@@ -29,7 +29,7 @@ class _NgoApprovalDetailScreenState extends State<NgoApprovalDetailScreen> {
     });
 
     try {
-      await _authService.updateUserStatus(widget.request.userId, newStatus.name);
+      await _authService.updateUserStatus(widget.request.user.id, newStatus.name);
 
       if (mounted) {
         final message = newStatus == UserStatus.active
@@ -159,8 +159,8 @@ class _NgoApprovalDetailScreenState extends State<NgoApprovalDetailScreen> {
             ),
             const SizedBox(height: 16.0),
 
-            _buildDetailRow('Nome', widget.request.userName),
-            _buildDetailRow('E-mail da Conta', widget.request.userEmail),
+            _buildDetailRow('Nome', widget.request.user.name),
+            _buildDetailRow('E-mail da Conta', widget.request.user.email),
 
             const SizedBox(height: 32.0),
 

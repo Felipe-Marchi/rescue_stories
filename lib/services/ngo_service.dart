@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/ngo_model.dart';
 import '../models/ngo_request_model.dart';
+import '../models/user_model.dart';
 import '../models/user_role.dart';
 import '../models/user_status.dart';
 
@@ -67,16 +68,14 @@ class NgoService {
       final List<NgoRequestModel> requests = [];
       for (final doc in snapshot.docs) {
         final userData = doc.data();
-        final ngoId = userData['ngoId'] ?? '';
-        if (ngoId.isNotEmpty) {
-          final ngo = await getNgoById(ngoId);
+        final userModel = UserModel.fromMap(doc.id, userData);
+
+        if (userModel.ngoId != null && userModel.ngoId!.isNotEmpty) {
+          final ngo = await getNgoById(userModel.ngoId!);
           if (ngo != null) {
             requests.add(
               NgoRequestModel(
-                userId: doc.id,
-                userName: userData['name'] ?? '',
-                userEmail: userData['email'] ?? '',
-                userStatus: userData['status'] ?? '',
+                user: userModel,
                 ngo: ngo,
               ),
             );

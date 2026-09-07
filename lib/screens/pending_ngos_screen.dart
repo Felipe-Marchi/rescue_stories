@@ -69,7 +69,7 @@ class PendingNgosScreen extends StatelessWidget {
                       children: [
                         Text('CNPJ: ${request.ngo.document}'),
                         const SizedBox(height: 2.0),
-                        Text('Resp: ${request.userName} (${request.userEmail})'),
+                        Text('Resp: ${request.user.name} (${request.user.email})'),
                       ],
                     ),
                   ),

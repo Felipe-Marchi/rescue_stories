@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/user_model.dart';
 import '../models/user_status.dart';
 import '../models/user_role.dart';
 
@@ -63,10 +64,17 @@ class AuthService {
     });
   }
 
+  // Recupera as informações do perfil do usuário como objeto UserModel.
+  Future<UserModel?> getUserProfile(String userId) async {
+    final doc = await _firestore.collection('users').doc(userId).get();
+    if (!doc.exists || doc.data() == null) return null;
+    return UserModel.fromMap(doc.id, doc.data()!);
+  }
+
   // Recupera o papel de acesso do usuario no banco de dados.
   Future<String?> getUserRole(String userId) async {
-    final doc = await _firestore.collection('users').doc(userId).get();
-    return doc.data()?['role'] as String?;
+    final userModel = await getUserProfile(userId);
+    return userModel?.role;
   }
 
   // Atualiza o status do usuario no banco de dados.
