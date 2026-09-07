@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/ngo_request_model.dart';
-import '../models/user_status.dart';
+import '../models/dtos/ngo_request_model.dart';
+import '../models/enums/user_status.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/primary_button.dart';

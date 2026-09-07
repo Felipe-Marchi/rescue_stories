@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/ngo_request_model.dart';
+import '../models/dtos/ngo_request_model.dart';
 import '../services/ngo_service.dart';
 import '../widgets/custom_app_bar.dart';
 import 'ngo_approval_detail_screen.dart';

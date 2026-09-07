@@ -1,5 +1,5 @@
-import 'user_role.dart';
-import 'user_status.dart';
+import 'enums/user_role.dart';
+import 'enums/user_status.dart';
 
 // Representa as informações de perfil e nível de acesso de um usuário no sistema.
 class UserModel {

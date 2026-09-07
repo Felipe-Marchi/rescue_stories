@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/ngo_model.dart';
-import '../models/ngo_request_model.dart';
+import '../models/dtos/ngo_request_model.dart';
 import '../models/user_model.dart';
-import '../models/user_role.dart';
-import '../models/user_status.dart';
+import '../models/enums/user_role.dart';
+import '../models/enums/user_status.dart';
 
 // Gerencia a comunicação entre o aplicativo e o banco de dados Firestore para a entidade organização (ONG).
 class NgoService {

@@ -3,7 +3,7 @@ import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
-import '../models/user_role.dart';
+import '../models/enums/user_role.dart';
 import 'ngo_setup_screen.dart';
 
 // Renderiza a interface visual para o cadastro de novos usuarios no sistema.
