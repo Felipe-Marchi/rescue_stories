@@ -62,4 +62,17 @@ class AuthService {
       'status': UserStatus.underReview.name,
     });
   }
+
+  // Recupera o papel de acesso do usuario no banco de dados.
+  Future<String?> getUserRole(String userId) async {
+    final doc = await _firestore.collection('users').doc(userId).get();
+    return doc.data()?['role'] as String?;
+  }
+
+  // Atualiza o status do usuario no banco de dados.
+  Future<void> updateUserStatus(String userId, String status) async {
+    await _firestore.collection('users').doc(userId).update({
+      'status': status,
+    });
+  }
 }

@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/ngo_model.dart';
+import '../models/ngo_request_model.dart';
+import '../models/user_role.dart';
+import '../models/user_status.dart';
 
 // Gerencia a comunicação entre o aplicativo e o banco de dados Firestore para a entidade organização (ONG).
 class NgoService {
@@ -51,6 +54,37 @@ class NgoService {
     } catch (e) {
       return null;
     }
+  }
+
+  // Recupera a lista de solicitações de ONGs pendentes de análise.
+  Stream<List<NgoRequestModel>> getPendingRequests() {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .where('role', isEqualTo: UserRole.ngoRep.name)
+        .where('status', isEqualTo: UserStatus.underReview.name)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final List<NgoRequestModel> requests = [];
+      for (final doc in snapshot.docs) {
+        final userData = doc.data();
+        final ngoId = userData['ngoId'] ?? '';
+        if (ngoId.isNotEmpty) {
+          final ngo = await getNgoById(ngoId);
+          if (ngo != null) {
+            requests.add(
+              NgoRequestModel(
+                userId: doc.id,
+                userName: userData['name'] ?? '',
+                userEmail: userData['email'] ?? '',
+                userStatus: userData['status'] ?? '',
+                ngo: ngo,
+              ),
+            );
+          }
+        }
+      }
+      return requests;
+    });
   }
 
   // Recupera a lista de organizações armazenadas no banco de dados em tempo real.
