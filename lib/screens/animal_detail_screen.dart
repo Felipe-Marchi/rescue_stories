@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
+import '../models/ngo_model.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
 import '../widgets/primary_button.dart';
 import '../services/auth_service.dart';
+import '../services/ngo_service.dart';
 import 'login_screen.dart';
 
 // Renderiza a interface de exibição detalhada dos dados de um animal específico.
 class AnimalDetailScreen extends StatelessWidget {
   final AnimalModel animal;
   final AuthService _authService = AuthService();
+  final NgoService _ngoService = NgoService();
 
   // Inicializa a tela exigindo o modelo de dados do animal selecionado.
   AnimalDetailScreen({
@@ -56,43 +59,55 @@ class AnimalDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24.0),
 
-                  // Exibe a ONG usando o dado desnormalizado no modelo.
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(8.0),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.business, color: Colors.green, size: 28.0),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Instituição Responsável',
-                                style: TextStyle(
-                                  fontSize: 12.0,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                              const SizedBox(height: 4.0),
-                              Text(
-                                animal.ngoName,
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ],
-                          ),
+                  // Consulta e exibe a ONG responsável com base no ngoId e cache de NgoModel.
+                  FutureBuilder<NgoModel?>(
+                    future: _ngoService.getNgoById(animal.ngoId),
+                    builder: (context, snapshot) {
+                      final ngo = snapshot.data;
+                      final ngoName = ngo != null && ngo.name.isNotEmpty
+                          ? ngo.name
+                          : (snapshot.connectionState == ConnectionState.waiting
+                              ? 'Carregando...'
+                              : 'ONG não informada');
+
+                      return Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8.0),
+                          border: Border.all(color: Colors.grey.shade200),
                         ),
-                      ],
-                    ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.business, color: Colors.green, size: 28.0),
+                            const SizedBox(width: 16.0),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Instituição Responsável',
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4.0),
+                                  Text(
+                                    ngoName,
+                                    style: const TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
 
                   // Espacamento antes do botao principal

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
+import '../models/ngo_model.dart';
 import '../screens/animal_detail_screen.dart';
+import '../services/ngo_service.dart';
 import 'custom_network_image.dart';
 
 // Renderiza as informações de um animal em um contêiner visual com elevação e interação de clique.
 class AnimalCard extends StatelessWidget {
   final AnimalModel animal;
+  final NgoService _ngoService = NgoService();
 
   // Inicializa o componente visual exigindo a injeção dos dados do animal.
-  const AnimalCard({
+  AnimalCard({
     super.key,
     required this.animal,
   });
@@ -54,24 +57,36 @@ class AnimalCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6.0),
 
-                  // Renderiza o nome da instituicao com um icone indicativo.
-                  Row(
-                    children: [
-                      const Icon(Icons.business, size: 14.0, color: Colors.green),
-                      const SizedBox(width: 4.0),
-                      Expanded(
-                        child: Text(
-                          animal.ngoName,
-                          style: TextStyle(
-                            fontSize: 13.0,
-                            color: Colors.green.shade700,
-                            fontWeight: FontWeight.w600,
+                  // Renderiza o nome da instituicao a partir do ngoId usando FutureBuilder com cache de NgoModel.
+                  FutureBuilder<NgoModel?>(
+                    future: _ngoService.getNgoById(animal.ngoId),
+                    builder: (context, snapshot) {
+                      final ngo = snapshot.data;
+                      final ngoName = ngo != null && ngo.name.isNotEmpty
+                          ? ngo.name
+                          : (snapshot.connectionState == ConnectionState.waiting
+                              ? 'Carregando...'
+                              : 'ONG não vinculada');
+
+                      return Row(
+                        children: [
+                          const Icon(Icons.business, size: 14.0, color: Colors.green),
+                          const SizedBox(width: 4.0),
+                          Expanded(
+                            child: Text(
+                              ngoName,
+                              style: TextStyle(
+                                fontSize: 13.0,
+                                color: Colors.green.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 12.0),
 

@@ -6,6 +6,9 @@ class NgoService {
   // Instancia a referência para a coleção de organizações no banco de dados.
   final CollectionReference _ngosCollection = FirebaseFirestore.instance.collection('ngos');
 
+  // Cache estático em memória para armazenar os objetos NgoModel completos e evitar requisições repetidas ao Firestore.
+  static final Map<String, NgoModel> _ngoCache = {};
+
   // Registra as informações institucionais de uma organização.
   Future<String> addNgo(NgoModel ngo) async {
     final docRef = await _ngosCollection.add({
@@ -20,12 +23,42 @@ class NgoService {
     return docRef.id;
   }
 
+  // Recupera uma organização específica pelo seu identificador com suporte a cache.
+  Future<NgoModel?> getNgoById(String ngoId) async {
+    if (ngoId.isEmpty) return null;
+
+    if (_ngoCache.containsKey(ngoId)) {
+      return _ngoCache[ngoId];
+    }
+
+    try {
+      final doc = await _ngosCollection.doc(ngoId).get();
+      if (!doc.exists) return null;
+
+      final data = doc.data() as Map<String, dynamic>;
+      final ngo = NgoModel(
+        id: doc.id,
+        name: data['name'] ?? '',
+        document: data['document'] ?? '',
+        email: data['email'] ?? '',
+        phone: data['phone'] ?? '',
+        address: data['address'] ?? '',
+        ownerId: data['ownerId'] ?? '',
+      );
+
+      _ngoCache[ngoId] = ngo;
+      return ngo;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Recupera a lista de organizações armazenadas no banco de dados em tempo real.
   Stream<List<NgoModel>> getNgos() {
     return _ngosCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        return NgoModel(
+        final ngo = NgoModel(
           id: doc.id,
           name: data['name'] ?? '',
           document: data['document'] ?? '',
@@ -34,6 +67,9 @@ class NgoService {
           address: data['address'] ?? '',
           ownerId: data['ownerId'] ?? '',
         );
+
+        _ngoCache[doc.id] = ngo;
+        return ngo;
       }).toList();
     });
   }

@@ -50,18 +50,10 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
       // Consulta o documento do usuario atual para obter o identificador da ONG vinculada.
       final user = _authService.currentUser;
       String currentNgoId = "";
-      String currentNgoName = "";
 
-      if (user != null)
-      {
+      if (user != null) {
         final userDoc = await _firestore.collection('users').doc(user.uid).get();
         currentNgoId = userDoc.data()?['ngoId'] ?? '';
-
-        // Busca os detalhes institucionais para gravar no perfil do animal.
-        if (currentNgoId.isNotEmpty) {
-          final ngoDoc = await _firestore.collection('ngos').doc(currentNgoId).get();
-          currentNgoName = ngoDoc.data()?['name'] ?? 'ONG sem nome';
-        }
       }
 
       final animal = AnimalModel(
@@ -70,7 +62,6 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
         description: _descriptionController.text,
         imageUrl: imageUrl,
         ngoId: currentNgoId,
-        ngoName: currentNgoName,
       );
 
       await _animalService.addAnimal(animal);
