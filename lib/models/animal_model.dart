@@ -5,6 +5,7 @@ class AnimalModel {
   final String description;
   final String imageUrl;
   final String ngoId;
+  final String gender;
 
   // Inicializa uma instância da classe com os dados obrigatórios do animal.
   AnimalModel({
@@ -13,5 +14,6 @@ class AnimalModel {
     required this.description,
     required this.imageUrl,
     required this.ngoId,
+    required this.gender,
   });
 }

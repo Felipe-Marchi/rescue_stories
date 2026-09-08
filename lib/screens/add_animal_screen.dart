@@ -29,6 +29,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
   final _authService = AuthService();
 
   File? _selectedImage;
+  String _selectedGender = 'Macho';
   bool _isLoading = false;
 
   // Valida os dados, realiza o upload da imagem, recupera o vinculo institucional e persiste o cadastro.
@@ -60,6 +61,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
         description: _descriptionController.text,
         imageUrl: imageUrl,
         ngoId: currentNgoId,
+        gender: _selectedGender,
       );
 
       await _animalService.addAnimal(animal);
@@ -88,6 +90,51 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
                 controller: _nameController,
                 label: 'Nome do Animal',
                 isRequired: true,
+              ),
+              const SizedBox(height: 20.0),
+
+              // Renderiza os seletores de sexo do animal.
+              const Text(
+                'Sexo do Animal',
+                style: TextStyle(
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8.0),
+              Row(
+                children: [
+                  Expanded(
+                    child: ChoiceChip(
+                      label: const Center(child: Text('Macho')),
+                      selected: _selectedGender == 'Macho',
+                      selectedColor: Colors.green.shade100,
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() {
+                            _selectedGender = 'Macho';
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12.0),
+                  Expanded(
+                    child: ChoiceChip(
+                      label: const Center(child: Text('Fêmea')),
+                      selected: _selectedGender == 'Fêmea',
+                      selectedColor: Colors.green.shade100,
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() {
+                            _selectedGender = 'Fêmea';
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20.0),
 

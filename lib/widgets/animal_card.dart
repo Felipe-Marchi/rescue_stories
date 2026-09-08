@@ -4,6 +4,7 @@ import '../models/ngo_model.dart';
 import '../screens/animal_detail_screen.dart';
 import '../services/ngo_service.dart';
 import 'custom_network_image.dart';
+import 'gender_tag.dart';
 
 // Renderiza as informações de um animal em um contêiner visual com elevação e interação de clique.
 class AnimalCard extends StatelessWidget {
@@ -47,13 +48,22 @@ class AnimalCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Exibe o nome do animal utilizando peso de fonte em negrito.
-                  Text(
-                    animal.name,
-                    style: const TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Exibe o nome do animal utilizando peso de fonte em negrito.
+                      Expanded(
+                        child: Text(
+                          animal.name,
+                          style: const TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      // Exibe a tag de sexo do animal via componente isolado.
+                      GenderTag(gender: animal.gender),
+                    ],
                   ),
                   const SizedBox(height: 6.0),
 

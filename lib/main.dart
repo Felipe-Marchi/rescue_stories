@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'models/animal_model.dart';
+import 'models/user_model.dart';
 import 'widgets/animal_card.dart';
 import 'services/animal_service.dart';
 import 'widgets/custom_app_bar.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/add_animal_screen.dart';
 import 'services/auth_service.dart';
 
 // Inicia a execução do aplicativo de forma assíncrona, estabelecendo a
@@ -98,6 +101,41 @@ class HomePage extends StatelessWidget {
             itemCount: animals.length,
             itemBuilder: (context, index) {
               return AnimalCard(animal: animals[index]);
+            },
+          );
+        },
+      ),
+      // Exibe o botão flutuante de forma reativa conforme as alterações de autenticação e perfil.
+      floatingActionButton: StreamBuilder<User?>(
+        stream: _authService.authStateChanges,
+        builder: (context, authSnapshot) {
+          final user = authSnapshot.data;
+
+          if (user == null) {
+            return const SizedBox.shrink();
+          }
+
+          return FutureBuilder<UserModel?>(
+            future: _authService.getUserProfile(user.uid),
+            builder: (context, profileSnapshot) {
+              final userModel = profileSnapshot.data;
+
+              if (userModel != null && userModel.isNgoRep && userModel.isActive) {
+                return FloatingActionButton(
+                  backgroundColor: Colors.green,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddAnimalScreen(),
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.add, color: Colors.white),
+                );
+              }
+
+              return const SizedBox.shrink();
             },
           );
         },

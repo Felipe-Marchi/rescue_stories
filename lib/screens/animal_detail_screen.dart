@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
+import '../widgets/gender_tag.dart';
 import '../widgets/ngo_info_card.dart';
 import '../widgets/primary_button.dart';
 import '../services/auth_service.dart';
@@ -54,13 +55,25 @@ class AnimalDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    animal.name,
-                    style: const TextStyle(
-                      fontSize: 28.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          animal.name,
+                          style: const TextStyle(
+                            fontSize: 28.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      GenderTag(
+                        gender: animal.gender,
+                        isLarge: true,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16.0),
                   Text(
