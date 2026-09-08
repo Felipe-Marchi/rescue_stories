@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class CustomNetworkImage extends StatelessWidget {
   final String imageUrl;
   final double height;
+  final double? width;
   final BoxFit fit;
 
   // Inicializa o componente exigindo a URL e a altura, com preenchimento padrão de corte.
@@ -11,33 +12,44 @@ class CustomNetworkImage extends StatelessWidget {
     super.key,
     required this.imageUrl,
     required this.height,
+    this.width,
     this.fit = BoxFit.cover,
   });
 
   // Constrói um componente visual padronizado para substituir imagens ausentes ou quebradas.
   Widget _buildPlaceholder() {
+    final isCompact = height < 100.0 || (width != null && width! < 100.0);
+
     return Container(
       height: height,
-      width: double.infinity,
+      width: width ?? double.infinity,
       color: Colors.grey.shade200,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.image_not_supported,
-            size: 48.0,
-            color: Colors.grey.shade500,
-          ),
-          const SizedBox(height: 8.0),
-          Text(
-            'Não foi possível carregar a imagem',
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 12.0,
+      child: isCompact
+          ? Center(
+              child: Icon(
+                Icons.pets,
+                size: height * 0.4,
+                color: Colors.grey.shade400,
+              ),
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.image_not_supported,
+                  size: 48.0,
+                  color: Colors.grey.shade500,
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  'Não foi possível carregar a imagem',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12.0,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -52,6 +64,7 @@ class CustomNetworkImage extends StatelessWidget {
     return Image.network(
       imageUrl,
       height: height,
+      width: width,
       fit: fit,
       errorBuilder: (context, error, stackTrace) {
         return _buildPlaceholder();

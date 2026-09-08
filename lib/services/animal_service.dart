@@ -23,6 +23,26 @@ class AnimalService {
     });
   }
 
+  // Recupera a lista de animais vinculados a uma ONG específica em tempo real.
+  Stream<List<AnimalModel>> getAnimalsByNgo(String ngoId) {
+    return _animalsCollection
+        .where('ngoId', isEqualTo: ngoId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return AnimalModel(
+          id: doc.id,
+          name: data['name'] ?? '',
+          description: data['description'] ?? '',
+          imageUrl: data['imageUrl'] ?? '',
+          ngoId: data['ngoId'] ?? '',
+          gender: data['gender'] ?? 'Macho',
+        );
+      }).toList();
+    });
+  }
+
   // Registra as informações de um animal na coleção do banco de dados.
   Future<void> addAnimal(AnimalModel animal) async {
     await _animalsCollection.add({
@@ -32,5 +52,20 @@ class AnimalService {
       'ngoId': animal.ngoId,
       'gender': animal.gender,
     });
+  }
+
+  // Atualiza as informações de um animal existente no banco de dados.
+  Future<void> updateAnimal(AnimalModel animal) async {
+    await _animalsCollection.doc(animal.id).update({
+      'name': animal.name,
+      'description': animal.description,
+      'imageUrl': animal.imageUrl,
+      'gender': animal.gender,
+    });
+  }
+
+  // Exclui o registro do animal do banco de dados.
+  Future<void> deleteAnimal(String animalId) async {
+    await _animalsCollection.doc(animalId).delete();
   }
 }

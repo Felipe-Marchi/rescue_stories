@@ -4,6 +4,8 @@ import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/primary_button.dart';
 import 'pending_ngos_screen.dart';
+import 'my_animals_screen.dart';
+import 'add_animal_screen.dart';
 
 // Renderiza a interface de perfil do usuario autenticado com opcoes de gerenciamento de conta.
 class ProfileScreen extends StatelessWidget {
@@ -49,7 +51,11 @@ class ProfileScreen extends StatelessWidget {
                 builder: (context, snapshot) {
                   final userModel = snapshot.data;
 
-                  if (userModel != null && userModel.isAdmin) {
+                  if (userModel == null) {
+                    return const SizedBox.shrink();
+                  }
+
+                  if (userModel.isAdmin) {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 32.0),
                       padding: const EdgeInsets.all(16.0),
@@ -90,6 +96,112 @@ class ProfileScreen extends StatelessWidget {
                               );
                             },
                           ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (userModel.isNgoRep) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 32.0),
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: userModel.isActive ? Colors.green.shade50 : Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(12.0),
+                        border: Border.all(
+                          color: userModel.isActive ? Colors.green.shade200 : Colors.amber.shade300,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.business,
+                                color: userModel.isActive ? Colors.green : Colors.amber.shade800,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 8.0),
+                              const Text(
+                                'Painel da Instituição',
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12.0),
+
+                          if (userModel.isActive && userModel.ngoId != null) ...[
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('Meus Animais Cadastrados'),
+                              subtitle: const Text('Visualizar, editar e remover resgates'),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MyAnimalsScreen(
+                                      ngoId: userModel.ngoId!,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const Divider(),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('Cadastrar Novo Animal'),
+                              subtitle: const Text('Publicar um novo animal para adoção'),
+                              trailing: const Icon(Icons.add_circle_outline, color: Colors.green),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const AddAnimalScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ] else if (userModel.isUnderReview) ...[
+                            const Text(
+                              'Cadastro em Análise',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15.0,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4.0),
+                            Text(
+                              'Sua instituição foi enviada para análise da administração. Em breve você receberá a liberação para publicar animais.',
+                              style: TextStyle(
+                                fontSize: 13.0,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ] else ...[
+                            const Text(
+                              'Cadastro Não Aprovado',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15.0,
+                                color: Colors.red,
+                              ),
+                            ),
+                            const SizedBox(height: 4.0),
+                            Text(
+                              'Sua solicitação de cadastro não foi aprovada. Entre em contato com o suporte para mais informações.',
+                              style: TextStyle(
+                                fontSize: 13.0,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     );

@@ -9,15 +9,20 @@ import '../widgets/primary_button.dart';
 import '../widgets/image_picker_widget.dart';
 import '../services/auth_service.dart';
 
-// Renderiza a interface de formulario para o cadastro de um animal no sistema.
+// Renderiza a interface de formulário para o cadastro e edição de um animal no sistema.
 class AddAnimalScreen extends StatefulWidget {
-  const AddAnimalScreen({super.key});
+  final AnimalModel? animalToEdit;
+
+  const AddAnimalScreen({
+    super.key,
+    this.animalToEdit,
+  });
 
   @override
   State<AddAnimalScreen> createState() => _AddAnimalScreenState();
 }
 
-// Gerencia o estado interno, selecao de midia e as interacoes do formulario de cadastro.
+// Gerencia o estado interno, seleção de mídia e as interações do formulário de cadastro/edição.
 class _AddAnimalScreenState extends State<AddAnimalScreen> {
   final _formKey = GlobalKey<FormState>();
 
@@ -32,31 +37,40 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
   String _selectedGender = 'Macho';
   bool _isLoading = false;
 
-  // Valida os dados, realiza o upload da imagem, recupera o vinculo institucional e persiste o cadastro.
+  @override
+  void initState() {
+    super.initState();
+    if (widget.animalToEdit != null) {
+      _nameController.text = widget.animalToEdit!.name;
+      _descriptionController.text = widget.animalToEdit!.description;
+      _selectedGender = widget.animalToEdit!.gender;
+    }
+  }
+
+  // Valida os dados, realiza o upload da imagem e persiste o cadastro ou alteração.
   Future<void> _saveAnimal() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      String imageUrl = "";
+      String imageUrl = widget.animalToEdit?.imageUrl ?? "";
 
       if (_selectedImage != null) {
         String fileName = "animal_" + DateTime.now().millisecondsSinceEpoch.toString() + ".jpg";
         imageUrl = await _storageService.uploadAnimalImage(_selectedImage!, fileName);
       }
 
-      // Consulta o perfil do usuario atual para obter o identificador da ONG vinculada.
       final user = _authService.currentUser;
-      String currentNgoId = "";
+      String currentNgoId = widget.animalToEdit?.ngoId ?? "";
 
-      if (user != null) {
+      if (currentNgoId.isEmpty && user != null) {
         final userModel = await _authService.getUserProfile(user.uid);
         currentNgoId = userModel?.ngoId ?? '';
       }
 
       final animal = AnimalModel(
-        id: '',
+        id: widget.animalToEdit?.id ?? '',
         name: _nameController.text,
         description: _descriptionController.text,
         imageUrl: imageUrl,
@@ -64,9 +78,19 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
         gender: _selectedGender,
       );
 
-      await _animalService.addAnimal(animal);
+      if (widget.animalToEdit == null) {
+        await _animalService.addAnimal(animal);
+      } else {
+        await _animalService.updateAnimal(animal);
+      }
 
       if (mounted) {
+        final message = widget.animalToEdit == null
+            ? 'Animal cadastrado com sucesso!'
+            : 'Dados atualizados com sucesso!';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
         Navigator.pop(context);
       }
     }
@@ -74,10 +98,12 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.animalToEdit != null;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(
-        title: 'Cadastrar Animal',
+      appBar: CustomAppBar(
+        title: isEditing ? 'Editar Animal' : 'Cadastrar Animal',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
