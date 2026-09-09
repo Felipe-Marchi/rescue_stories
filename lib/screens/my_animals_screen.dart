@@ -4,7 +4,7 @@ import '../services/animal_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
 import '../widgets/gender_tag.dart';
-import 'add_animal_screen.dart';
+import 'animal_form_screen.dart';
 
 // Renderiza a lista de animais cadastrados exclusivamente pela ONG autenticada.
 class MyAnimalsScreen extends StatelessWidget {
@@ -122,7 +122,7 @@ class MyAnimalsScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => AddAnimalScreen(animalToEdit: animal),
+                              builder: (context) => AnimalFormScreen(animalToEdit: animal),
                             ),
                           );
                         },

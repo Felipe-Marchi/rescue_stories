@@ -10,20 +10,20 @@ import '../widgets/image_picker_widget.dart';
 import '../services/auth_service.dart';
 
 // Renderiza a interface de formulário para o cadastro e edição de um animal no sistema.
-class AddAnimalScreen extends StatefulWidget {
+class AnimalFormScreen extends StatefulWidget {
   final AnimalModel? animalToEdit;
 
-  const AddAnimalScreen({
+  const AnimalFormScreen({
     super.key,
     this.animalToEdit,
   });
 
   @override
-  State<AddAnimalScreen> createState() => _AddAnimalScreenState();
+  State<AnimalFormScreen> createState() => _AnimalFormScreenState();
 }
 
 // Gerencia o estado interno, seleção de mídia e as interações do formulário de cadastro/edição.
-class _AddAnimalScreenState extends State<AddAnimalScreen> {
+class _AnimalFormScreenState extends State<AnimalFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();

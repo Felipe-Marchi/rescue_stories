@@ -9,7 +9,7 @@ import 'services/animal_service.dart';
 import 'widgets/custom_app_bar.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/add_animal_screen.dart';
+import 'screens/animal_form_screen.dart';
 import 'services/auth_service.dart';
 
 // Inicia a execução do aplicativo de forma assíncrona, estabelecendo a
@@ -127,7 +127,7 @@ class HomePage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AddAnimalScreen(),
+                        builder: (context) => const AnimalFormScreen(),
                       ),
                     );
                   },

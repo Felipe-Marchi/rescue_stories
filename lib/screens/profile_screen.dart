@@ -5,7 +5,7 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/primary_button.dart';
 import 'pending_ngos_screen.dart';
 import 'my_animals_screen.dart';
-import 'add_animal_screen.dart';
+import 'animal_form_screen.dart';
 
 // Renderiza a interface de perfil do usuario autenticado com opcoes de gerenciamento de conta.
 class ProfileScreen extends StatelessWidget {
@@ -162,7 +162,7 @@ class ProfileScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const AddAnimalScreen(),
+                                    builder: (context) => const AnimalFormScreen(),
                                   ),
                                 );
                               },
