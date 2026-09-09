@@ -4,9 +4,10 @@ import '../services/animal_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
 import '../widgets/gender_tag.dart';
+import 'animal_detail_screen.dart';
 import 'animal_form_screen.dart';
 
-// Renderiza a lista de animais cadastrados exclusivamente pela ONG autenticada.
+// Renderiza a grade de animais cadastrados exclusivamente pela ONG autenticada.
 class MyAnimalsScreen extends StatelessWidget {
   final String ngoId;
   final AnimalService _animalService = AnimalService();
@@ -15,6 +16,69 @@ class MyAnimalsScreen extends StatelessWidget {
     super.key,
     required this.ngoId,
   });
+
+  // Exibe o painel deslizante inferior com as ações disponíveis para o resgate selecionado.
+  void _showOptionsBottomSheet(BuildContext context, AnimalModel animal) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                  child: Text(
+                    animal.name,
+                    style: const TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.edit, color: Colors.green),
+                  title: const Text(
+                    'Editar',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.0),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AnimalFormScreen(animalToEdit: animal),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: const Text(
+                    'Excluir',
+                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600, fontSize: 16.0),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _confirmDelete(context, animal);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   // Exibe o diálogo de confirmação para a exclusão do registro.
   void _confirmDelete(BuildContext context, AnimalModel animal) {
@@ -77,59 +141,79 @@ class MyAnimalsScreen extends StatelessWidget {
             );
           }
 
-          return ListView.builder(
+          return GridView.builder(
             padding: const EdgeInsets.all(16.0),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12.0,
+              mainAxisSpacing: 12.0,
+              childAspectRatio: 0.78,
+            ),
             itemCount: animals.length,
             itemBuilder: (context, index) {
               final animal = animals[index];
               return Card(
-                margin: const EdgeInsets.only(bottom: 12.0),
+                elevation: 2.0,
+                clipBehavior: Clip.antiAlias,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Row(
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AnimalDetailScreen(animal: animal),
+                      ),
+                    );
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
+                      Expanded(
                         child: CustomNetworkImage(
                           imageUrl: animal.imageUrl,
-                          height: 70.0,
-                          width: 70.0,
+                          height: double.infinity,
                         ),
                       ),
-                      const SizedBox(width: 16.0),
-                      Expanded(
-                        child: Column(
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              animal.name,
-                              style: const TextStyle(
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.bold,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    animal.name,
+                                    style: const TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  GenderTag(gender: animal.gender),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 6.0),
-                            GenderTag(gender: animal.gender),
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: Icon(
+                                  Icons.more_vert,
+                                  color: Colors.grey.shade700,
+                                  size: 20.0,
+                                ),
+                                onPressed: () => _showOptionsBottomSheet(context, animal),
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.green),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AnimalFormScreen(animalToEdit: animal),
-                            ),
-                          );
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () => _confirmDelete(context, animal),
                       ),
                     ],
                   ),
