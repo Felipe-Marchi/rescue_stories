@@ -3,7 +3,7 @@ import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/primary_button.dart';
-import 'pending_ngos_screen.dart';
+import 'ngo_management_screen.dart';
 import 'my_animals_screen.dart';
 import 'animal_form_screen.dart';
 
@@ -84,14 +84,14 @@ class ProfileScreen extends StatelessWidget {
                           const SizedBox(height: 12.0),
                           ListTile(
                             contentPadding: EdgeInsets.zero,
-                            title: const Text('Aprovação de ONGs'),
-                            subtitle: const Text('Gerenciar solicitações de cadastro pendentes'),
+                            title: const Text('Gerenciar ONGs'),
+                            subtitle: const Text('Aprovação e consulta de instituições cadastradas'),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => PendingNgosScreen(),
+                                  builder: (context) => NgoManagementScreen(),
                                 ),
                               );
                             },

@@ -5,20 +5,20 @@ import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/primary_button.dart';
 
-// Renderiza a interface de avaliação detalhada de uma solicitação de ONG.
-class NgoApprovalDetailScreen extends StatefulWidget {
+// Renderiza a interface de exibição detalhada e avaliação de uma organização.
+class NgoDetailScreen extends StatefulWidget {
   final NgoRequestModel request;
 
-  const NgoApprovalDetailScreen({
+  const NgoDetailScreen({
     super.key,
     required this.request,
   });
 
   @override
-  State<NgoApprovalDetailScreen> createState() => _NgoApprovalDetailScreenState();
+  State<NgoDetailScreen> createState() => _NgoDetailScreenState();
 }
 
-class _NgoApprovalDetailScreenState extends State<NgoApprovalDetailScreen> {
+class _NgoDetailScreenState extends State<NgoDetailScreen> {
   final AuthService _authService = AuthService();
   bool _isLoading = false;
 
@@ -86,11 +86,12 @@ class _NgoApprovalDetailScreenState extends State<NgoApprovalDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final ngo = widget.request.ngo;
+    final isApproved = widget.request.user.isActive;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CustomAppBar(
-        title: 'Avaliação de ONG',
+      appBar: CustomAppBar(
+        title: isApproved ? 'Detalhes da ONG' : 'Avaliação de ONG',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -166,6 +167,30 @@ class _NgoApprovalDetailScreenState extends State<NgoApprovalDetailScreen> {
 
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
+            else if (isApproved)
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(12.0),
+                  border: Border.all(color: Colors.green.shade300),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green, size: 24),
+                    SizedBox(width: 8.0),
+                    Text(
+                      'Instituição Aprovada e Ativa',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              )
             else
               Row(
                 children: [

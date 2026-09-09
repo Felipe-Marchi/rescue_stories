@@ -86,6 +86,35 @@ class NgoService {
     });
   }
 
+  // Recupera a lista de ONGs aprovadas e ativas no sistema.
+  Stream<List<NgoRequestModel>> getApprovedRequests() {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .where('role', isEqualTo: UserRole.ngoRep.name)
+        .where('status', isEqualTo: UserStatus.active.name)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final List<NgoRequestModel> requests = [];
+      for (final doc in snapshot.docs) {
+        final userData = doc.data();
+        final userModel = UserModel.fromMap(doc.id, userData);
+
+        if (userModel.ngoId != null && userModel.ngoId!.isNotEmpty) {
+          final ngo = await getNgoById(userModel.ngoId!);
+          if (ngo != null) {
+            requests.add(
+              NgoRequestModel(
+                user: userModel,
+                ngo: ngo,
+              ),
+            );
+          }
+        }
+      }
+      return requests;
+    });
+  }
+
   // Recupera a lista de organizações armazenadas no banco de dados em tempo real.
   Stream<List<NgoModel>> getNgos() {
     return _ngosCollection.snapshots().map((snapshot) {

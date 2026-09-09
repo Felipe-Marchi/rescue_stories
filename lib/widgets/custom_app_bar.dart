@@ -5,6 +5,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool isMainPage;
   final List<Widget>? actions;
+  final PreferredSizeWidget? bottom;
 
   // Inicializa o componente definindo, por padrao, que nao se trata da tela principal.
   const CustomAppBar({
@@ -12,6 +13,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.isMainPage = false,
     this.actions,
+    this.bottom,
   });
 
   @override
@@ -48,10 +50,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: actions,
+      bottom: bottom,
     );
   }
 
   // Define a altura padrao reservada para a barra de navegacao superior.
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(
+        kToolbarHeight + (bottom?.preferredSize.height ?? 0.0),
+      );
 }
