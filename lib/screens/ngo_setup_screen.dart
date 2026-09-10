@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/ngo_model.dart';
 import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
+import '../utils/formatters.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
@@ -27,6 +29,16 @@ class _NgoSetupScreenState extends State<NgoSetupScreen> {
   final _ngoService = NgoService();
 
   bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _documentController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
 
   // Valida os dados, grava a instituicao no banco e vincula ao usuario atual.
   Future<void> _submitNgoData() async {
@@ -107,13 +119,31 @@ class _NgoSetupScreenState extends State<NgoSetupScreen> {
                 controller: _nameController,
                 label: 'Nome da Instituição',
                 isRequired: true,
+                validator: (value) {
+                  if (value != null && value.trim().length < 3) {
+                    return 'Informe o nome completo da instituição';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16.0),
 
               CustomTextField(
                 controller: _documentController,
                 label: 'CNPJ',
+                keyboardType: TextInputType.number,
                 isRequired: true,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  CnpjInputFormatter(),
+                ],
+                validator: (value) {
+                  final digits = value?.replaceAll(RegExp(r'\D'), '') ?? '';
+                  if (digits.length != 14) {
+                    return 'CNPJ incompleto (informe os 14 dígitos)';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16.0),
 
@@ -122,6 +152,12 @@ class _NgoSetupScreenState extends State<NgoSetupScreen> {
                 label: 'E-mail Público',
                 keyboardType: TextInputType.emailAddress,
                 isRequired: true,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty && !value.contains('@')) {
+                    return 'Informe um e-mail válido';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16.0),
 
@@ -130,6 +166,17 @@ class _NgoSetupScreenState extends State<NgoSetupScreen> {
                 label: 'Telefone / WhatsApp',
                 keyboardType: TextInputType.phone,
                 isRequired: true,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  PhoneInputFormatter(),
+                ],
+                validator: (value) {
+                  final digits = value?.replaceAll(RegExp(r'\D'), '') ?? '';
+                  if (digits.length < 10) {
+                    return 'Informe um telefone válido com DDD';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16.0),
 
@@ -137,6 +184,12 @@ class _NgoSetupScreenState extends State<NgoSetupScreen> {
                 controller: _addressController,
                 label: 'Endereço Completo (com Cidade/Estado)',
                 isRequired: true,
+                validator: (value) {
+                  if (value != null && value.trim().length < 5) {
+                    return 'Informe o endereço completo com Cidade/UF';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 32.0),
 

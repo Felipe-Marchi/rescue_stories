@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Renderiza um campo de entrada de texto padronizado para manter a consistencia visual.
 class CustomTextField extends StatelessWidget {
@@ -9,6 +10,7 @@ class CustomTextField extends StatelessWidget {
   final bool isRequired;
   final bool obscureText;
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
 
   // Inicializa o componente definindo o controlador, rotulo e regras de validacao.
   const CustomTextField({
@@ -20,6 +22,7 @@ class CustomTextField extends StatelessWidget {
     this.isRequired = false,
     this.obscureText = false,
     this.keyboardType,
+    this.inputFormatters,
   });
 
   @override
@@ -29,6 +32,7 @@ class CustomTextField extends StatelessWidget {
       maxLines: maxLines,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         labelText: label,
         alignLabelWithHint: true,
