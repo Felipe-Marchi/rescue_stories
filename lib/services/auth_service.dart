@@ -10,6 +10,11 @@ class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  AuthService() {
+    // Configura o idioma padrão do Firebase Auth para português.
+    _firebaseAuth.setLanguageCode('pt');
+  }
+
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   // Retorna a instancia do usuario atualmente autenticado de forma sincrona.
@@ -54,6 +59,12 @@ class AuthService {
   // Encerra a sessão do usuário atualmente autenticado no aplicativo.
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
+  }
+
+  // Envia o e-mail de redefinição de senha para o endereço informado em português.
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _firebaseAuth.setLanguageCode('pt');
+    await _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 
   // Atualiza o documento do usuario com o identificador da instituicao e altera o status de acesso.

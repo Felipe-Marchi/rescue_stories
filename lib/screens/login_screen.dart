@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import 'register_screen.dart';
 
-// Renderiza a interface visual para autenticacao de usuarios no sistema.
+// Renderiza a interface visual para autenticação de usuários no sistema.
 class LoginScreen extends StatefulWidget {
   final bool isAdoptionFlow;
 
@@ -15,16 +16,16 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-// Gerencia o estado dos campos de texto e a comunicacao com o servico de autenticacao.
+// Gerencia o estado dos campos de texto e a comunicação com o serviço de autenticação.
 class _LoginScreenState extends State<LoginScreen> {
-  // Mantem a chave de identificacao global para a validacao do formulario.
+  // Mantém a chave de identificação global para a validação do formulário.
   final _formKey = GlobalKey<FormState>();
 
-  // Controla a captura de texto dos campos de email e senha.
+  // Controla a captura de texto dos campos de e-mail e senha.
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // Instancia o servico responsavel pela autenticacao no Firebase.
+  // Instancia o serviço responsável pela autenticação no Firebase.
   final _authService = AuthService();
 
   bool _isLoading = false;
@@ -37,7 +38,119 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  // Executa a tentativa de login utilizando os dados inseridos pelo usuario.
+  // Mapeia exceções do Firebase Auth em mensagens amigáveis em português.
+  String _getAuthErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-credential':
+      case 'wrong-password':
+      case 'user-not-found':
+        return 'E-mail ou senha incorretos.';
+      case 'invalid-email':
+        return 'O e-mail digitado não é válido.';
+      case 'user-disabled':
+        return 'Esta conta foi desativada pela administração.';
+      case 'too-many-requests':
+        return 'Muitas tentativas incorretas. Tente novamente mais tarde.';
+      case 'network-request-failed':
+        return 'Sem conexão com a internet. Verifique sua rede.';
+      default:
+        return 'Falha ao realizar login. Tente novamente.';
+    }
+  }
+
+  // Exibe o diálogo para o envio de e-mail de recuperação de senha.
+  void _handleForgotPassword() {
+    final resetEmailController = TextEditingController(text: _emailController.text.trim());
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        bool isResetLoading = false;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Redefinir Senha'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Digite seu e-mail para receber as instruções de recuperação:'),
+                  const SizedBox(height: 16.0),
+                  TextField(
+                    controller: resetEmailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'E-mail',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: isResetLoading
+                      ? null
+                      : () async {
+                          final email = resetEmailController.text.trim();
+                          if (email.isEmpty || !email.contains('@')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Por favor, informe um e-mail válido.')),
+                            );
+                            return;
+                          }
+
+                          setDialogState(() {
+                            isResetLoading = true;
+                          });
+
+                          try {
+                            await _authService.sendPasswordResetEmail(email);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('E-mail enviado! Verifique sua caixa de entrada.'),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Falha ao enviar e-mail. Verifique o endereço informado.'),
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (context.mounted) {
+                              setDialogState(() {
+                                isResetLoading = false;
+                              });
+                            }
+                          }
+                        },
+                  child: isResetLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Enviar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Executa a tentativa de login utilizando os dados inseridos pelo usuário.
   Future<void> loginUser() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -50,20 +163,22 @@ class _LoginScreenState extends State<LoginScreen> {
           _passwordController.text.trim(),
         );
 
-        // Exibe um alerta visual informando o sucesso da operacao.
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Login realizado com sucesso!')),
           );
-
-          // Fecha a tela de login e devolve o usuário para onde ele estava
           Navigator.pop(context);
         }
-      } catch (e) {
-        // Exibe um alerta visual caso as credenciais sejam invalidas ou ocorra falha na rede.
+      } on FirebaseAuthException catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Falha ao realizar login. Verifique suas credenciais.')),
+            SnackBar(content: Text(_getAuthErrorMessage(e))),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao realizar login. Tente novamente.')),
           );
         }
       } finally {
@@ -98,6 +213,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 label: 'E-mail',
                 keyboardType: TextInputType.emailAddress,
                 isRequired: true,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty && !value.contains('@')) {
+                    return 'Digite um e-mail válido';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16.0),
 
@@ -107,7 +228,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 obscureText: true,
                 isRequired: true,
               ),
-              const SizedBox(height: 32.0),
+              const SizedBox(height: 8.0),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _handleForgotPassword,
+                  child: Text(
+                    'Esqueceu a senha?',
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24.0),
 
               PrimaryButton(
                 text: 'Entrar',
