@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
@@ -6,7 +7,7 @@ import '../widgets/primary_button.dart';
 import '../models/enums/user_role.dart';
 import 'ngo_setup_screen.dart';
 
-// Renderiza a interface visual para o cadastro de novos usuarios no sistema.
+// Renderiza a interface visual para o cadastro de novos usuários no sistema.
 class RegisterScreen extends StatefulWidget {
   final bool isAdoptionFlow;
 
@@ -28,7 +29,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   String _selectedRole = UserRole.adopter.name;
 
-  // Executa o registro, gravando a autenticacao e o perfil no banco de dados.
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // Mapeia exceções do Firebase Auth para mensagens amigáveis de cadastro.
+  String _getRegisterErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'email-already-in-use':
+        return 'Este e-mail já está cadastrado. Faça login ou use outro e-mail.';
+      case 'invalid-email':
+        return 'O e-mail digitado não é válido.';
+      case 'weak-password':
+        return 'A senha escolhida é muito fraca. Escolha uma senha mais forte.';
+      case 'network-request-failed':
+        return 'Sem conexão com a internet. Verifique sua rede.';
+      default:
+        return 'Falha ao criar conta. Tente novamente.';
+    }
+  }
+
+  // Executa o registro, gravando a autenticação e o perfil no banco de dados.
   Future<void> _registerUser() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -45,22 +70,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         if (mounted) {
           if (_selectedRole == UserRole.ngoRep.name) {
-            // Direciona o representante para o preenchimento obrigatorio dos dados da ONG
+            // Direciona o representante para o preenchimento obrigatório dos dados da ONG.
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Conta criada! Finalize os dados da instituição.')),
             );
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const NgoSetupScreen()),
-                  (route) => route.isFirst,
+              (route) => route.isFirst,
             );
           } else {
-            // Retorna o adotante para a tela anterior
+            // Retorna o adotante para a tela anterior.
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Conta criada com sucesso!')),
             );
             Navigator.of(context)..pop()..pop();
           }
+        }
+      } on FirebaseAuthException catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_getRegisterErrorMessage(e))),
+          );
         }
       } catch (e) {
         if (mounted) {
@@ -153,6 +184,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _nameController,
                 label: 'Nome Completo',
                 isRequired: true,
+                validator: (value) {
+                  if (value != null && value.trim().length < 3) {
+                    return 'Informe seu nome completo';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16.0),
 
@@ -161,6 +198,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label: 'E-mail',
                 keyboardType: TextInputType.emailAddress,
                 isRequired: true,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty && !value.contains('@')) {
+                    return 'Informe um e-mail válido';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16.0),
 
@@ -169,6 +212,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label: 'Senha',
                 obscureText: true,
                 isRequired: true,
+                validator: (value) {
+                  if (value != null && value.length < 6) {
+                    return 'A senha deve ter no mínimo 6 caracteres';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 32.0),
 
