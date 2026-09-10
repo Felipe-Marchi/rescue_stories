@@ -88,6 +88,15 @@ class AuthService {
     return userModel?.role;
   }
 
+  // Recupera a lista de todos os usuários cadastrados no sistema em tempo real.
+  Stream<List<UserModel>> getAllUsers() {
+    return _firestore.collection('users').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return UserModel.fromMap(doc.id, doc.data());
+      }).toList();
+    });
+  }
+
   // Atualiza o status do usuario no banco de dados.
   Future<void> updateUserStatus(String userId, String status) async {
     await _firestore.collection('users').doc(userId).update({

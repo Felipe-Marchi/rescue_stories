@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/primary_button.dart';
 import 'ngo_management_screen.dart';
+import 'user_management_screen.dart';
 import 'my_animals_screen.dart';
 import 'animal_form_screen.dart';
 
@@ -92,6 +93,21 @@ class ProfileScreen extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => NgoManagementScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                          const Divider(),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text('Usuários do Sistema'),
+                            subtitle: const Text('Visualizar todas as contas registradas'),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => UserManagementScreen(),
                                 ),
                               );
                             },
