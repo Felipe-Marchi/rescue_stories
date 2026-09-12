@@ -293,28 +293,68 @@ class _LoginScreenState extends State<LoginScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton.icon(
-                            icon: const Icon(Icons.admin_panel_settings, size: 16.0),
-                            label: const Text('Admin', style: TextStyle(fontSize: 12.0)),
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            ),
                             onPressed: () {
                               _fillQuickCredentials(
                                 email: 'admin@test.com',
                                 password: '123456',
                               );
                             },
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.admin_panel_settings, size: 14.0),
+                                SizedBox(width: 4),
+                                Text('Admin', style: TextStyle(fontSize: 11.0)),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 8.0),
+                        const SizedBox(width: 6.0),
                         Expanded(
-                          child: OutlinedButton.icon(
-                            icon: const Icon(Icons.business, size: 16.0),
-                            label: const Text('ONG', style: TextStyle(fontSize: 12.0)),
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            ),
                             onPressed: () {
                               _fillQuickCredentials(
                                 email: 'teste.ong@email.com',
                                 password: 'testeapp',
                               );
                             },
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.business, size: 14.0),
+                                SizedBox(width: 4),
+                                Text('ONG', style: TextStyle(fontSize: 11.0)),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6.0),
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            ),
+                            onPressed: () {
+                              _fillQuickCredentials(
+                                email: 'adotante@test.com',
+                                password: '123456',
+                              );
+                            },
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.pets, size: 14.0),
+                                SizedBox(width: 4),
+                                Text('Adotante', style: TextStyle(fontSize: 11.0)),
+                              ],
+                            ),
                           ),
                         ),
                       ],
