@@ -9,23 +9,23 @@ class UserManagementScreen extends StatelessWidget {
 
   final AuthService _authService = AuthService();
 
-  Widget _buildSummaryCard(String title, int count, Color color) {
+  Widget _buildSummaryCard(String title, int count) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12.0),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(color: Colors.grey.shade200),
         ),
         child: Column(
           children: [
             Text(
               count.toString(),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20.0,
                 fontWeight: FontWeight.bold,
-                color: color,
+                color: Colors.black87,
               ),
             ),
             const SizedBox(height: 2.0),
@@ -33,8 +33,8 @@ class UserManagementScreen extends StatelessWidget {
               title,
               style: TextStyle(
                 fontSize: 12.0,
-                fontWeight: FontWeight.w600,
-                color: color,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade600,
               ),
             ),
           ],
@@ -45,28 +45,26 @@ class UserManagementScreen extends StatelessWidget {
 
   Widget _buildRoleBadge(UserModel user) {
     String label = 'Adotante';
-    Color color = Colors.green;
 
     if (user.isAdmin) {
       label = 'Admin';
-      color = Colors.purple;
     } else if (user.isNgoRep) {
       label = 'ONG';
-      color = Colors.blue;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8.0),
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(6.0),
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 12.0,
-          fontWeight: FontWeight.bold,
-          color: color,
+          fontSize: 11.0,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey.shade800,
         ),
       ),
     );
@@ -74,14 +72,14 @@ class UserManagementScreen extends StatelessWidget {
 
   Widget _buildStatusTag(UserModel user) {
     String label = 'Ativo';
-    Color color = Colors.green;
+    Color color = Colors.green.shade700;
 
     if (user.isUnderReview) {
       label = 'Em Análise';
       color = Colors.amber.shade800;
     } else if (user.status == 'rejected') {
       label = 'Rejeitado';
-      color = Colors.red;
+      color = Colors.red.shade700;
     }
 
     return Text(
@@ -133,11 +131,11 @@ class UserManagementScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    _buildSummaryCard('Adotantes', adoptersCount, Colors.green),
+                    _buildSummaryCard('Adotantes', adoptersCount),
                     const SizedBox(width: 8.0),
-                    _buildSummaryCard('ONGs', ngoRepsCount, Colors.blue),
+                    _buildSummaryCard('ONGs', ngoRepsCount),
                     const SizedBox(width: 8.0),
-                    _buildSummaryCard('Admins', adminsCount, Colors.purple),
+                    _buildSummaryCard('Admins', adminsCount),
                   ],
                 ),
               ),
@@ -148,6 +146,7 @@ class UserManagementScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final user = users[index];
                     return Card(
+                      elevation: 1.0,
                       margin: const EdgeInsets.only(bottom: 10.0),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),
@@ -155,14 +154,12 @@ class UserManagementScreen extends StatelessWidget {
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                         leading: CircleAvatar(
-                          backgroundColor: Colors.grey.shade200,
+                          backgroundColor: Colors.grey.shade100,
                           child: Icon(
                             user.isAdmin
                                 ? Icons.admin_panel_settings
                                 : (user.isNgoRep ? Icons.business : Icons.person),
-                            color: user.isAdmin
-                                ? Colors.purple
-                                : (user.isNgoRep ? Colors.blue : Colors.green),
+                            color: Colors.grey.shade700,
                           ),
                         ),
                         title: Row(
