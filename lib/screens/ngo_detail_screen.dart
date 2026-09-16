@@ -3,6 +3,7 @@ import '../models/dtos/ngo_request_model.dart';
 import '../models/enums/user_status.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/ngo_card.dart';
 import '../widgets/primary_button.dart';
 
 // Renderiza a interface de exibição detalhada e avaliação de uma organização.
@@ -98,41 +99,11 @@ class _NgoDetailScreenState extends State<NgoDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(12.0),
-                border: Border.all(color: Colors.green.shade200),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.business, color: Colors.green, size: 32),
-                  const SizedBox(width: 16.0),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ngo.name,
-                          style: const TextStyle(
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4.0),
-                        Text(
-                          'CNPJ: ${ngo.document}',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            // Renderiza o cartão com o resumo da ONG utilizando o componente isolado.
+            NgoCard(
+              ngo: ngo,
+              title: null,
+              showPhone: false,
             ),
             const SizedBox(height: 24.0),
 

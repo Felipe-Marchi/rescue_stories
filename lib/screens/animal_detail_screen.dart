@@ -3,7 +3,7 @@ import '../models/animal_model.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
 import '../widgets/gender_tag.dart';
-import '../widgets/ngo_info_card.dart';
+import '../widgets/ngo_card.dart';
 import '../widgets/primary_button.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
@@ -87,7 +87,7 @@ class AnimalDetailScreen extends StatelessWidget {
                   const SizedBox(height: 24.0),
 
                   // Exibe as informações da ONG responsável através do componente isolado.
-                  NgoInfoCard(ngoId: animal.ngoId),
+                  NgoCard(ngoId: animal.ngoId),
 
                   const SizedBox(height: 40.0),
 
