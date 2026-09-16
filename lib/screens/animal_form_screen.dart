@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
 import '../services/animal_service.dart';
 import '../services/storage_service.dart';
+import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
-import '../widgets/primary_button.dart';
+import '../widgets/gender_selector_widget.dart';
 import '../widgets/image_picker_widget.dart';
-import '../services/auth_service.dart';
+import '../widgets/primary_button.dart';
 
 // Renderiza a interface de formulário para o cadastro e edição de um animal no sistema.
 class AnimalFormScreen extends StatefulWidget {
@@ -45,6 +46,13 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
       _descriptionController.text = widget.animalToEdit!.description;
       _selectedGender = widget.animalToEdit!.gender;
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   // Valida os dados, realiza o upload da imagem e persiste o cadastro ou alteração.
@@ -119,48 +127,14 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
               ),
               const SizedBox(height: 20.0),
 
-              // Renderiza os seletores de sexo do animal.
-              const Text(
-                'Sexo do Animal',
-                style: TextStyle(
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8.0),
-              Row(
-                children: [
-                  Expanded(
-                    child: ChoiceChip(
-                      label: const Center(child: Text('Macho')),
-                      selected: _selectedGender == 'Macho',
-                      selectedColor: Colors.green.shade100,
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() {
-                            _selectedGender = 'Macho';
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12.0),
-                  Expanded(
-                    child: ChoiceChip(
-                      label: const Center(child: Text('Fêmea')),
-                      selected: _selectedGender == 'Fêmea',
-                      selectedColor: Colors.green.shade100,
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() {
-                            _selectedGender = 'Fêmea';
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ],
+              // Renderiza o seletor de sexo do animal via componente isolado.
+              GenderSelectorWidget(
+                selectedGender: _selectedGender,
+                onGenderSelected: (gender) {
+                  setState(() {
+                    _selectedGender = gender;
+                  });
+                },
               ),
               const SizedBox(height: 20.0),
 
