@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
 import '../services/animal_service.dart';
+import '../widgets/animal_card.dart';
 import '../widgets/custom_app_bar.dart';
-import '../widgets/custom_network_image.dart';
-import '../widgets/gender_tag.dart';
-import 'animal_detail_screen.dart';
 import 'animal_form_screen.dart';
 
 // Renderiza a grade de animais cadastrados exclusivamente pela ONG autenticada.
-class MyAnimalsScreen extends StatelessWidget {
+class AnimalManagementScreen extends StatelessWidget {
   final String ngoId;
   final AnimalService _animalService = AnimalService();
 
-  MyAnimalsScreen({
+  AnimalManagementScreen({
     super.key,
     required this.ngoId,
   });
@@ -117,7 +115,7 @@ class MyAnimalsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: const CustomAppBar(
-        title: 'Meus Animais Cadastrados',
+        title: 'Animais Cadastrados',
       ),
       body: StreamBuilder<List<AnimalModel>>(
         stream: _animalService.getAnimalsByNgo(ngoId),
@@ -152,70 +150,20 @@ class MyAnimalsScreen extends StatelessWidget {
             itemCount: animals.length,
             itemBuilder: (context, index) {
               final animal = animals[index];
-              return Card(
-                elevation: 2.0,
-                clipBehavior: Clip.antiAlias,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AnimalDetailScreen(animal: animal),
-                      ),
-                    );
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: CustomNetworkImage(
-                          imageUrl: animal.imageUrl,
-                          height: double.infinity,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    animal.name,
-                                    style: const TextStyle(
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 6.0),
-                                  GenderTag(gender: animal.gender),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: IconButton(
-                                padding: EdgeInsets.zero,
-                                icon: Icon(
-                                  Icons.more_vert,
-                                  color: Colors.grey.shade700,
-                                  size: 20.0,
-                                ),
-                                onPressed: () => _showOptionsBottomSheet(context, animal),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+              return AnimalCard(
+                animal: animal,
+                isGrid: true,
+                trailingAction: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: Colors.grey.shade700,
+                      size: 20.0,
+                    ),
+                    onPressed: () => _showOptionsBottomSheet(context, animal),
                   ),
                 ),
               );

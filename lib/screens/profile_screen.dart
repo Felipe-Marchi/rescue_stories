@@ -5,7 +5,7 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/primary_button.dart';
 import 'ngo_management_screen.dart';
 import 'user_management_screen.dart';
-import 'my_animals_screen.dart';
+import 'animal_management_screen.dart';
 import 'animal_form_screen.dart';
 
 // Renderiza a interface de perfil do usuario autenticado com opcoes de gerenciamento de conta.
@@ -161,7 +161,7 @@ class ProfileScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => MyAnimalsScreen(
+                                    builder: (context) => AnimalManagementScreen(
                                       ngoId: userModel.ngoId!,
                                     ),
                                   ),
