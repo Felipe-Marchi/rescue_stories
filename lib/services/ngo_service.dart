@@ -27,6 +27,18 @@ class NgoService {
     return docRef.id;
   }
 
+  // Atualiza as informações institucionais de uma organização no banco de dados e no cache.
+  Future<void> updateNgo(NgoModel ngo) async {
+    await _ngosCollection.doc(ngo.id).update({
+      'name': ngo.name,
+      'document': ngo.document,
+      'email': ngo.email,
+      'phone': ngo.phone,
+      'address': ngo.address,
+    });
+    _ngoCache[ngo.id] = ngo;
+  }
+
   // Recupera uma organização específica pelo seu identificador com suporte a cache.
   Future<NgoModel?> getNgoById(String ngoId) async {
     if (ngoId.isEmpty) return null;

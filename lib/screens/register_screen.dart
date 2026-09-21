@@ -5,7 +5,7 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import '../models/enums/user_role.dart';
-import 'ngo_setup_screen.dart';
+import 'ngo_form_screen.dart';
 
 // Renderiza a interface visual para o cadastro de novos usuários no sistema.
 class RegisterScreen extends StatefulWidget {
@@ -76,7 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             );
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const NgoSetupScreen()),
+              MaterialPageRoute(builder: (context) => const NgoFormScreen()),
               (route) => route.isFirst,
             );
           } else {

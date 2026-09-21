@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/ngo_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/primary_button.dart';
 import 'ngo_management_screen.dart';
 import 'user_management_screen.dart';
 import 'animal_management_screen.dart';
 import 'animal_form_screen.dart';
+import 'ngo_form_screen.dart';
 
 // Renderiza a interface de perfil do usuario autenticado com opcoes de gerenciamento de conta.
 class ProfileScreen extends StatelessWidget {
@@ -181,6 +183,24 @@ class ProfileScreen extends StatelessWidget {
                                     builder: (context) => const AnimalFormScreen(),
                                   ),
                                 );
+                              },
+                            ),
+                            const Divider(),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('Editar Dados da ONG'),
+                              subtitle: const Text('Atualizar telefone, e-mail e endereço'),
+                              trailing: const Icon(Icons.edit, color: Colors.green),
+                              onTap: () async {
+                                final ngo = await NgoService().getNgoById(userModel.ngoId!);
+                                if (context.mounted && ngo != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => NgoFormScreen(ngoToEdit: ngo),
+                                    ),
+                                  );
+                                }
                               },
                             ),
                           ] else if (userModel.isUnderReview) ...[
