@@ -9,10 +9,11 @@ class NgoCard extends StatelessWidget {
   final bool isCompact;
   final String? title;
   final bool showPhone;
+  final VoidCallback? onTap;
 
   final NgoService _ngoService = NgoService();
 
-  // Inicializa o componente aceitando opcionalmente o ngoId, o objeto NgoModel, título e visibilidade de telefone.
+  // Inicializa o componente aceitando opcionalmente o ngoId, o objeto NgoModel, título, visibilidade de telefone e ação ao clicar.
   NgoCard({
     super.key,
     this.ngoId,
@@ -20,6 +21,7 @@ class NgoCard extends StatelessWidget {
     this.isCompact = false,
     this.title = 'Instituição Responsável',
     this.showPhone = true,
+    this.onTap,
   });
 
   Widget _buildContent(NgoModel? ngoData, {bool isLoading = false}) {
@@ -48,7 +50,7 @@ class NgoCard extends StatelessWidget {
       );
     }
 
-    return Container(
+    Widget content = Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
@@ -104,9 +106,26 @@ class NgoCard extends StatelessWidget {
               ],
             ),
           ),
+          if (onTap != null) ...[
+            const SizedBox(width: 8.0),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+          ],
         ],
       ),
     );
+
+    if (onTap != null) {
+      content = Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8.0),
+          onTap: onTap,
+          child: content,
+        ),
+      );
+    }
+
+    return content;
   }
 
   @override

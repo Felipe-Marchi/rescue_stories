@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/dtos/ngo_request_model.dart';
 import '../services/ngo_service.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/ngo_card.dart';
 import 'ngo_detail_screen.dart';
 
 // Renderiza a interface de gerenciamento de ONGs com abas para solicitações pendentes e aprovadas.
@@ -14,7 +15,6 @@ class NgoManagementScreen extends StatelessWidget {
     required BuildContext context,
     required Stream<List<NgoRequestModel>> stream,
     required String emptyMessage,
-    required bool isApprovedTab,
   }) {
     return StreamBuilder<List<NgoRequestModel>>(
       stream: stream,
@@ -43,39 +43,12 @@ class NgoManagementScreen extends StatelessWidget {
           itemCount: requests.length,
           itemBuilder: (context, index) {
             final request = requests[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(16.0),
-                leading: CircleAvatar(
-                  backgroundColor: isApprovedTab ? Colors.green : Colors.amber.shade700,
-                  child: Icon(
-                    isApprovedTab ? Icons.check_circle : Icons.business,
-                    color: Colors.white,
-                  ),
-                ),
-                title: Text(
-                  request.ngo.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.0,
-                  ),
-                ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 6.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('CNPJ: ${request.ngo.document}'),
-                      const SizedBox(height: 2.0),
-                      Text('Resp: ${request.user.name} (${request.user.email})'),
-                    ],
-                  ),
-                ),
-                trailing: const Icon(Icons.chevron_right),
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: NgoCard(
+                ngo: request.ngo,
+                title: null,
+                showPhone: false,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -122,13 +95,11 @@ class NgoManagementScreen extends StatelessWidget {
               context: context,
               stream: _ngoService.getPendingRequests(),
               emptyMessage: 'Nenhuma solicitação pendente no momento.',
-              isApprovedTab: false,
             ),
             _buildNgoList(
               context: context,
               stream: _ngoService.getApprovedRequests(),
               emptyMessage: 'Nenhuma ONG aprovada cadastrada.',
-              isApprovedTab: true,
             ),
           ],
         ),
