@@ -6,8 +6,8 @@ import '../services/storage_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
-import '../widgets/gender_selector_widget.dart';
-import '../widgets/image_picker_widget.dart';
+import '../widgets/gender_selector.dart';
+import '../widgets/image_picker_field.dart';
 import '../widgets/primary_button.dart';
 
 // Renderiza a interface de formulário para o cadastro e edição de um animal no sistema.
@@ -132,7 +132,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
               const SizedBox(height: 20.0),
 
               // Renderiza o seletor de sexo do animal via componente isolado.
-              GenderSelectorWidget(
+              GenderSelector(
                 selectedGender: _selectedGender,
                 onGenderSelected: (gender) {
                   setState(() {
@@ -151,7 +151,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
               const SizedBox(height: 20.0),
 
               // Instancia o componente de foto com suporte à imagem inicial e remoção.
-              ImagePickerWidget(
+              ImagePickerField(
                 initialImageUrl: widget.animalToEdit?.imageUrl,
                 onImageSelected: (file) {
                   setState(() {

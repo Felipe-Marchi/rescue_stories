@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 // Renderiza o seletor de opções para a escolha do sexo do animal no formulário.
-class GenderSelectorWidget extends StatelessWidget {
+class GenderSelector extends StatelessWidget {
   final String selectedGender;
   final ValueChanged<String> onGenderSelected;
 
   // Inicializa o componente exigindo o valor selecionado e a função de notificação de alteração.
-  const GenderSelectorWidget({
+  const GenderSelector({
     super.key,
     required this.selectedGender,
     required this.onGenderSelected,

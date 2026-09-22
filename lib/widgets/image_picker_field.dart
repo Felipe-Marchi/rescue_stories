@@ -4,13 +4,13 @@ import 'package:image_picker/image_picker.dart';
 import 'custom_network_image.dart';
 
 // Renderiza um componente interativo para seleção de imagens via câmera, galeria ou remoção.
-class ImagePickerWidget extends StatefulWidget {
+class ImagePickerField extends StatefulWidget {
   final String? initialImageUrl;
   final Function(File?) onImageSelected;
   final VoidCallback? onImageRemoved;
 
   // Inicializa o componente exigindo a função de retorno para repassar o arquivo ou nulo.
-  const ImagePickerWidget({
+  const ImagePickerField({
     super.key,
     this.initialImageUrl,
     required this.onImageSelected,
@@ -18,10 +18,10 @@ class ImagePickerWidget extends StatefulWidget {
   });
 
   @override
-  State<ImagePickerWidget> createState() => _ImagePickerWidgetState();
+  State<ImagePickerField> createState() => _ImagePickerFieldState();
 }
 
-class _ImagePickerWidgetState extends State<ImagePickerWidget> {
+class _ImagePickerFieldState extends State<ImagePickerField> {
   File? _selectedImage;
   bool _isImageRemoved = false;
 
