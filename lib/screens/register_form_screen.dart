@@ -7,17 +7,17 @@ import '../widgets/primary_button.dart';
 import '../models/enums/user_role.dart';
 import 'ngo_form_screen.dart';
 
-// Renderiza a interface visual para o cadastro de novos usuários no sistema.
-class RegisterScreen extends StatefulWidget {
+// Renderiza a interface de formulário para o cadastro de novos usuários no sistema.
+class RegisterFormScreen extends StatefulWidget {
   final bool isAdoptionFlow;
 
-  const RegisterScreen({super.key, this.isAdoptionFlow = false});
+  const RegisterFormScreen({super.key, this.isAdoptionFlow = false});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<RegisterFormScreen> createState() => _RegisterFormScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterFormScreenState extends State<RegisterFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -35,22 +35,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  // Mapeia exceções do Firebase Auth para mensagens amigáveis de cadastro.
-  String _getRegisterErrorMessage(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'email-already-in-use':
-        return 'Este e-mail já está cadastrado. Faça login ou use outro e-mail.';
-      case 'invalid-email':
-        return 'O e-mail digitado não é válido.';
-      case 'weak-password':
-        return 'A senha escolhida é muito fraca. Escolha uma senha mais forte.';
-      case 'network-request-failed':
-        return 'Sem conexão com a internet. Verifique sua rede.';
-      default:
-        return 'Falha ao criar conta. Tente novamente.';
-    }
   }
 
   // Executa o registro, gravando a autenticação e o perfil no banco de dados.
@@ -90,7 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } on FirebaseAuthException catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(_getRegisterErrorMessage(e))),
+            SnackBar(content: Text(_authService.getRegisterErrorMessage(e))),
           );
         }
       } catch (e) {

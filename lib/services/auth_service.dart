@@ -48,6 +48,42 @@ class AuthService {
     return credential;
   }
 
+  // Mapeia exceções do Firebase Auth em mensagens amigáveis de erro de cadastro.
+  String getRegisterErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'email-already-in-use':
+        return 'Este e-mail já está cadastrado. Faça login ou use outro e-mail.';
+      case 'invalid-email':
+        return 'O e-mail digitado não é válido.';
+      case 'weak-password':
+        return 'A senha escolhida é muito fraca. Escolha uma senha mais forte.';
+      case 'network-request-failed':
+        return 'Sem conexão com a internet. Verifique sua rede.';
+      default:
+        return 'Falha ao criar conta. Tente novamente.';
+    }
+  }
+
+  // Mapeia exceções do Firebase Auth em mensagens amigáveis de erro de login.
+  String getLoginErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-credential':
+      case 'wrong-password':
+      case 'user-not-found':
+        return 'E-mail ou senha incorretos.';
+      case 'invalid-email':
+        return 'O e-mail digitado não é válido.';
+      case 'user-disabled':
+        return 'Esta conta foi desativada pela administração.';
+      case 'too-many-requests':
+        return 'Muitas tentativas incorretas. Tente novamente mais tarde.';
+      case 'network-request-failed':
+        return 'Sem conexão com a internet. Verifique sua rede.';
+      default:
+        return 'Falha ao realizar login. Tente novamente.';
+    }
+  }
+
   // Autentica um usuário existente no sistema validando as credenciais informadas.
   Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
     return await _firebaseAuth.signInWithEmailAndPassword(

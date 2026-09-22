@@ -4,20 +4,20 @@ import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
-import 'register_screen.dart';
+import 'register_form_screen.dart';
 
 // Renderiza a interface visual para autenticação de usuários no sistema.
-class LoginScreen extends StatefulWidget {
+class LoginFormScreen extends StatefulWidget {
   final bool isAdoptionFlow;
 
-  const LoginScreen({super.key, this.isAdoptionFlow = false});
+  const LoginFormScreen({super.key, this.isAdoptionFlow = false});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginFormScreen> createState() => _LoginFormScreenState();
 }
 
 // Gerencia o estado dos campos de texto e a comunicação com o serviço de autenticação.
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginFormScreenState extends State<LoginFormScreen> {
   // Mantém a chave de identificação global para a validação do formulário.
   final _formKey = GlobalKey<FormState>();
 
@@ -30,32 +30,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   // Preenche os campos de e-mail e senha com credenciais de teste de desenvolvimento.
   void _fillQuickCredentials({required String email, required String password}) {
     setState(() {
       _emailController.text = email;
       _passwordController.text = password;
     });
-  }
-
-  // Mapeia exceções do Firebase Auth em mensagens amigáveis em português.
-  String _getAuthErrorMessage(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'invalid-credential':
-      case 'wrong-password':
-      case 'user-not-found':
-        return 'E-mail ou senha incorretos.';
-      case 'invalid-email':
-        return 'O e-mail digitado não é válido.';
-      case 'user-disabled':
-        return 'Esta conta foi desativada pela administração.';
-      case 'too-many-requests':
-        return 'Muitas tentativas incorretas. Tente novamente mais tarde.';
-      case 'network-request-failed':
-        return 'Sem conexão com a internet. Verifique sua rede.';
-      default:
-        return 'Falha ao realizar login. Tente novamente.';
-    }
   }
 
   // Exibe o diálogo para o envio de e-mail de recuperação de senha.
@@ -151,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // Executa a tentativa de login utilizando os dados inseridos pelo usuário.
-  Future<void> loginUser() async {
+  Future<void> _loginUser() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -172,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } on FirebaseAuthException catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(_getAuthErrorMessage(e))),
+            SnackBar(content: Text(_authService.getLoginErrorMessage(e))),
           );
         }
       } catch (e) {
@@ -189,6 +176,100 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     }
+  }
+
+  // Renderiza o painel de atalhos de preenchimento rápido para testes de desenvolvimento (temporário).
+  Widget _buildDevQuickLoginShortcuts() {
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Atalhos para Teste',
+            style: TextStyle(
+              fontSize: 12.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  ),
+                  onPressed: () {
+                    _fillQuickCredentials(
+                      email: 'admin@test.com',
+                      password: '123456',
+                    );
+                  },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.admin_panel_settings, size: 14.0),
+                      SizedBox(width: 4),
+                      Text('Admin', style: TextStyle(fontSize: 11.0)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6.0),
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  ),
+                  onPressed: () {
+                    _fillQuickCredentials(
+                      email: 'teste.ong@email.com',
+                      password: 'testeapp',
+                    );
+                  },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.business, size: 14.0),
+                      SizedBox(width: 4),
+                      Text('ONG', style: TextStyle(fontSize: 11.0)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6.0),
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  ),
+                  onPressed: () {
+                    _fillQuickCredentials(
+                      email: 'adotante@test.com',
+                      password: '123456',
+                    );
+                  },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.pets, size: 14.0),
+                      SizedBox(width: 4),
+                      Text('Adotante', style: TextStyle(fontSize: 11.0)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -248,7 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
               PrimaryButton(
                 text: 'Entrar',
                 isLoading: _isLoading,
-                onPressed: loginUser,
+                onPressed: _loginUser,
               ),
 
               TextButton(
@@ -256,7 +337,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => RegisterScreen(isAdoptionFlow: widget.isAdoptionFlow),
+                      builder: (context) => RegisterFormScreen(isAdoptionFlow: widget.isAdoptionFlow),
                     ),
                   );
                 },
@@ -271,97 +352,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24.0),
 
-              // Renderiza os atalhos de preenchimento rápido para testes de desenvolvimento. APENAS TEMPORÁRIO!
-              Container(
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Atalhos para Teste',
-                      style: TextStyle(
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                            ),
-                            onPressed: () {
-                              _fillQuickCredentials(
-                                email: 'admin@test.com',
-                                password: '123456',
-                              );
-                            },
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.admin_panel_settings, size: 14.0),
-                                SizedBox(width: 4),
-                                Text('Admin', style: TextStyle(fontSize: 11.0)),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6.0),
-                        Expanded(
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                            ),
-                            onPressed: () {
-                              _fillQuickCredentials(
-                                email: 'teste.ong@email.com',
-                                password: 'testeapp',
-                              );
-                            },
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.business, size: 14.0),
-                                SizedBox(width: 4),
-                                Text('ONG', style: TextStyle(fontSize: 11.0)),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6.0),
-                        Expanded(
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                            ),
-                            onPressed: () {
-                              _fillQuickCredentials(
-                                email: 'adotante@test.com',
-                                password: '123456',
-                              );
-                            },
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.pets, size: 14.0),
-                                SizedBox(width: 4),
-                                Text('Adotante', style: TextStyle(fontSize: 11.0)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              // Renderiza os atalhos temporários de teste para desenvolvimento.
+              _buildDevQuickLoginShortcuts(),
             ],
           ),
         ),

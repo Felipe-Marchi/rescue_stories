@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/user_card.dart';
 
 // Renderiza a interface de visualização e gerenciamento de todos os usuários cadastrados.
 class UserManagementScreen extends StatelessWidget {
@@ -39,55 +40,6 @@ class UserManagementScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildRoleBadge(UserModel user) {
-    String label = 'Adotante';
-
-    if (user.isAdmin) {
-      label = 'Admin';
-    } else if (user.isNgoRep) {
-      label = 'ONG';
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(6.0),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11.0,
-          fontWeight: FontWeight.w600,
-          color: Colors.grey.shade800,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusTag(UserModel user) {
-    String label = 'Ativo';
-    Color color = Colors.green.shade700;
-
-    if (user.isUnderReview) {
-      label = 'Em Análise';
-      color = Colors.amber.shade800;
-    } else if (user.status == 'rejected') {
-      label = 'Rejeitado';
-      color = Colors.red.shade700;
-    }
-
-    return Text(
-      label,
-      style: TextStyle(
-        fontSize: 12.0,
-        fontWeight: FontWeight.w600,
-        color: color,
       ),
     );
   }
@@ -145,57 +97,12 @@ class UserManagementScreen extends StatelessWidget {
                   itemCount: users.length,
                   itemBuilder: (context, index) {
                     final user = users[index];
-                    return Card(
-                      elevation: 1.0,
-                      margin: const EdgeInsets.only(bottom: 10.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.grey.shade100,
-                          child: Icon(
-                            user.isAdmin
-                                ? Icons.admin_panel_settings
-                                : (user.isNgoRep ? Icons.business : Icons.person),
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                user.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16.0,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8.0),
-                            _buildRoleBadge(user),
-                          ],
-                        ),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  user.email,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: Colors.grey.shade600),
-                                ),
-                              ),
-                              _buildStatusTag(user),
-                            ],
-                          ),
-                        ),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10.0),
+                      child: UserCard(
+                        user: user,
+                        showRoleBadge: true,
+                        showStatusTag: true,
                       ),
                     );
                   },

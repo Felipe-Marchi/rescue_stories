@@ -6,7 +6,7 @@ import '../widgets/gender_tag.dart';
 import '../widgets/ngo_card.dart';
 import '../widgets/primary_button.dart';
 import '../services/auth_service.dart';
-import 'login_screen.dart';
+import 'login_form_screen.dart';
 
 // Renderiza a interface de exibição detalhada dos dados de um animal específico.
 class AnimalDetailScreen extends StatelessWidget {
@@ -25,7 +25,7 @@ class AnimalDetailScreen extends StatelessWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const LoginScreen(isAdoptionFlow: true),
+          builder: (context) => const LoginFormScreen(isAdoptionFlow: true),
         ),
       );
     } else {
