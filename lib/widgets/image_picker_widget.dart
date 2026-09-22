@@ -1,15 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'custom_network_image.dart';
 
-// Renderiza um componente interativo para selecao de imagens via camera ou galeria.
+// Renderiza um componente interativo para seleção de imagens via câmera, galeria ou remoção.
 class ImagePickerWidget extends StatefulWidget {
-  final Function(File) onImageSelected;
+  final String? initialImageUrl;
+  final Function(File?) onImageSelected;
+  final VoidCallback? onImageRemoved;
 
-  // Inicializa o componente exigindo a funcao de retorno para repassar o arquivo selecionado.
+  // Inicializa o componente exigindo a função de retorno para repassar o arquivo ou nulo.
   const ImagePickerWidget({
     super.key,
+    this.initialImageUrl,
     required this.onImageSelected,
+    this.onImageRemoved,
   });
 
   @override
@@ -18,6 +23,7 @@ class ImagePickerWidget extends StatefulWidget {
 
 class _ImagePickerWidgetState extends State<ImagePickerWidget> {
   File? _selectedImage;
+  bool _isImageRemoved = false;
 
   // Aciona a interface nativa do dispositivo para capturar ou selecionar uma imagem.
   Future<void> _pickImage(ImageSource source) async {
@@ -28,14 +34,31 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
       final file = File(pickedFile.path);
       setState(() {
         _selectedImage = file;
+        _isImageRemoved = false;
       });
-      // Executa a funcao injetada pelo elemento pai para devolver o arquivo isolado.
       widget.onImageSelected(file);
     }
   }
 
-  // Exibe um menu deslizante inferior para escolha da fonte de imagem.
+  // Remove a seleção de imagem atual e aciona a notificação de remoção.
+  void _removeImage() {
+    setState(() {
+      _selectedImage = null;
+      _isImageRemoved = true;
+    });
+    widget.onImageSelected(null);
+    if (widget.onImageRemoved != null) {
+      widget.onImageRemoved!();
+    }
+  }
+
+  // Exibe um menu deslizante inferior para escolha ou remoção de imagem.
   void _showImageSourceOptions() {
+    final hasImage = _selectedImage != null ||
+        (!_isImageRemoved &&
+            widget.initialImageUrl != null &&
+            widget.initialImageUrl!.isNotEmpty);
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -61,10 +84,61 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
                   _pickImage(ImageSource.gallery);
                 },
               ),
+              if (hasImage) ...[
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: const Text(
+                    'Remover Foto',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _removeImage();
+                  },
+                ),
+              ],
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildImagePreview() {
+    if (_selectedImage != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12.0),
+        child: Image.file(
+          _selectedImage!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+        ),
+      );
+    }
+
+    if (!_isImageRemoved &&
+        widget.initialImageUrl != null &&
+        widget.initialImageUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12.0),
+        child: CustomNetworkImage(
+          imageUrl: widget.initialImageUrl!,
+          height: 200,
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.add_a_photo, size: 48, color: Colors.grey.shade400),
+        const SizedBox(height: 8.0),
+        Text(
+          'Toque para adicionar uma foto',
+          style: TextStyle(color: Colors.grey.shade600),
+        ),
+      ],
     );
   }
 
@@ -79,26 +153,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
           borderRadius: BorderRadius.circular(12.0),
           border: Border.all(color: Colors.grey.shade300),
         ),
-        child: _selectedImage != null
-            ? ClipRRect(
-          borderRadius: BorderRadius.circular(12.0),
-          child: Image.file(
-            _selectedImage!,
-            fit: BoxFit.cover,
-            width: double.infinity,
-          ),
-        )
-            : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_a_photo, size: 48, color: Colors.grey.shade400),
-            const SizedBox(height: 8.0),
-            Text(
-              'Toque para adicionar uma foto',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-          ],
-        ),
+        child: _buildImagePreview(),
       ),
     );
   }

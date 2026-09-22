@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/animal_model.dart';
+import 'storage_service.dart';
 
 // Gerencia a comunicação entre o aplicativo e o banco de dados Firestore para a entidade animal.
 class AnimalService {
   // Instancia a referência para a coleção de animais no banco de dados.
   final CollectionReference _animalsCollection = FirebaseFirestore.instance.collection('animals');
+  final StorageService _storageService = StorageService();
 
   // Recupera a lista de animais armazenada no banco de dados em tempo real.
   Stream<List<AnimalModel>> getAnimals() {
@@ -55,7 +57,11 @@ class AnimalService {
   }
 
   // Atualiza as informações de um animal existente no banco de dados.
-  Future<void> updateAnimal(AnimalModel animal) async {
+  Future<void> updateAnimal(AnimalModel animal, {String? oldImageUrl}) async {
+    if (oldImageUrl != null && oldImageUrl.isNotEmpty && oldImageUrl != animal.imageUrl) {
+      await _storageService.deleteImageByUrl(oldImageUrl);
+    }
+
     await _animalsCollection.doc(animal.id).update({
       'name': animal.name,
       'description': animal.description,
@@ -64,8 +70,11 @@ class AnimalService {
     });
   }
 
-  // Exclui o registro do animal do banco de dados.
-  Future<void> deleteAnimal(String animalId) async {
+  // Exclui o registro do animal do banco de dados e remove sua foto do Storage.
+  Future<void> deleteAnimal(String animalId, {String? imageUrl}) async {
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      await _storageService.deleteImageByUrl(imageUrl);
+    }
     await _animalsCollection.doc(animalId).delete();
   }
 }

@@ -35,6 +35,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
   final _authService = AuthService();
 
   File? _selectedImage;
+  bool _isImageRemoved = false;
   String _selectedGender = 'Macho';
   bool _isLoading = false;
 
@@ -55,16 +56,19 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
     super.dispose();
   }
 
-  // Valida os dados, realiza o upload da imagem e persiste o cadastro ou alteração.
+  // Valida os dados, realiza o upload ou remoção da imagem e persiste o cadastro ou alteração.
   Future<void> _saveAnimal() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      String imageUrl = widget.animalToEdit?.imageUrl ?? "";
+      final oldImageUrl = widget.animalToEdit?.imageUrl ?? "";
+      String imageUrl = oldImageUrl;
 
-      if (_selectedImage != null) {
+      if (_isImageRemoved) {
+        imageUrl = "";
+      } else if (_selectedImage != null) {
         String fileName = "animal_" + DateTime.now().millisecondsSinceEpoch.toString() + ".jpg";
         imageUrl = await _storageService.uploadAnimalImage(_selectedImage!, fileName);
       }
@@ -89,7 +93,7 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
       if (widget.animalToEdit == null) {
         await _animalService.addAnimal(animal);
       } else {
-        await _animalService.updateAnimal(animal);
+        await _animalService.updateAnimal(animal, oldImageUrl: oldImageUrl);
       }
 
       if (mounted) {
@@ -146,10 +150,20 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
               ),
               const SizedBox(height: 20.0),
 
-              // Instancia o componente isolado recebendo o arquivo pelo callback.
+              // Instancia o componente de foto com suporte à imagem inicial e remoção.
               ImagePickerWidget(
+                initialImageUrl: widget.animalToEdit?.imageUrl,
                 onImageSelected: (file) {
-                  _selectedImage = file;
+                  setState(() {
+                    _selectedImage = file;
+                    if (file != null) _isImageRemoved = false;
+                  });
+                },
+                onImageRemoved: () {
+                  setState(() {
+                    _selectedImage = null;
+                    _isImageRemoved = true;
+                  });
                 },
               ),
               const SizedBox(height: 40.0),

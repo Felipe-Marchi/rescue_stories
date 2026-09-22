@@ -95,7 +95,7 @@ class AnimalManagementScreen extends StatelessWidget {
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () async {
                 Navigator.pop(context);
-                await _animalService.deleteAnimal(animal.id);
+                await _animalService.deleteAnimal(animal.id, imageUrl: animal.imageUrl);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Registro removido com sucesso.')),
