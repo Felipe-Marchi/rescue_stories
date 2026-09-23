@@ -10,6 +10,7 @@ import 'user_management_screen.dart';
 import 'animal_management_screen.dart';
 import 'animal_form_screen.dart';
 import 'ngo_form_screen.dart';
+import 'adoption_management_screen.dart';
 
 // Renderiza a interface de perfil do usuário autenticado com opções de gerenciamento de conta.
 class ProfileScreen extends StatelessWidget {
@@ -127,6 +128,23 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 12.0),
 
           if (userModel.isActive && userModel.ngoId != null) ...[
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Solicitações de Adoção'),
+              subtitle: const Text('Gerenciar intenções recebidas de adotantes'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdoptionManagementScreen(
+                      ngoId: userModel.ngoId!,
+                    ),
+                  ),
+                );
+              },
+            ),
+            const Divider(),
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('Meus Animais Cadastrados'),

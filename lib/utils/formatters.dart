@@ -1,5 +1,12 @@
 import 'package:flutter/services.dart';
 
+// Formata uma instância de DateTime no formato textual padrão dd/mm/yyyy.
+String formatDate(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  return "$day/$month/${date.year}";
+}
+
 // Formata a entrada de texto do campo de CNPJ aplicando a máscara XX.XXX.XXX/XXXX-XX.
 class CnpjInputFormatter extends TextInputFormatter {
   @override

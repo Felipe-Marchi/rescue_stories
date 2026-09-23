@@ -8,6 +8,38 @@ class AnimalService {
   final CollectionReference _animalsCollection = FirebaseFirestore.instance.collection('animals');
   final StorageService _storageService = StorageService();
 
+  // Cache estático em memória para armazenar objetos AnimalModel e evitar buscas repetidas.
+  static final Map<String, AnimalModel> _animalCache = {};
+
+  // Recupera um animal específico pelo seu identificador único.
+  Future<AnimalModel?> getAnimalById(String animalId) async {
+    if (animalId.isEmpty) return null;
+
+    if (_animalCache.containsKey(animalId)) {
+      return _animalCache[animalId];
+    }
+
+    try {
+      final doc = await _animalsCollection.doc(animalId).get();
+      if (!doc.exists || doc.data() == null) return null;
+
+      final data = doc.data() as Map<String, dynamic>;
+      final animal = AnimalModel(
+        id: doc.id,
+        name: data['name'] ?? '',
+        description: data['description'] ?? '',
+        imageUrl: data['imageUrl'] ?? '',
+        ngoId: data['ngoId'] ?? '',
+        gender: data['gender'] ?? 'Macho',
+      );
+
+      _animalCache[animalId] = animal;
+      return animal;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Recupera a lista de animais armazenada no banco de dados em tempo real.
   Stream<List<AnimalModel>> getAnimals() {
     return _animalsCollection.snapshots().map((snapshot) {
@@ -56,7 +88,7 @@ class AnimalService {
     });
   }
 
-  // Atualiza as informações de um animal existente no banco de dados.
+  // Atualiza as informações de um animal existente no banco de dados e atualiza o cache em memória.
   Future<void> updateAnimal(AnimalModel animal, {String? oldImageUrl}) async {
     if (oldImageUrl != null && oldImageUrl.isNotEmpty && oldImageUrl != animal.imageUrl) {
       await _storageService.deleteImageByUrl(oldImageUrl);
@@ -68,13 +100,16 @@ class AnimalService {
       'imageUrl': animal.imageUrl,
       'gender': animal.gender,
     });
+
+    _animalCache[animal.id] = animal;
   }
 
-  // Exclui o registro do animal do banco de dados e remove sua foto do Storage.
+  // Exclui o registro do animal do banco de dados, remove sua foto do Storage e limpa o cache.
   Future<void> deleteAnimal(String animalId, {String? imageUrl}) async {
     if (imageUrl != null && imageUrl.isNotEmpty) {
       await _storageService.deleteImageByUrl(imageUrl);
     }
     await _animalsCollection.doc(animalId).delete();
+    _animalCache.remove(animalId);
   }
 }
