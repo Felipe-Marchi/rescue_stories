@@ -48,7 +48,10 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
     }
 
     final message =
-        'Olá! Tenho interesse em adotar o pet $animalName que vi no Histórias de Resgate. Meu nome é $adopterName ($adopterEmail). Gostaria de saber os próximos passos!';
+        '🐾 *Histórias de Resgate*\n\n'
+        'Olá! Tenho interesse em adotar o pet *$animalName* que vi no aplicativo.\n\n'
+        '👤 *Adotante:* $adopterName ($adopterEmail)\n\n'
+        'Gostaria de saber os próximos passos!';
 
     final encodedMessage = Uri.encodeComponent(message);
     final whatsappUri = Uri.parse('https://wa.me/$phoneDigits?text=$encodedMessage');
