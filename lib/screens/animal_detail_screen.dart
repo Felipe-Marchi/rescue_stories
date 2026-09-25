@@ -98,6 +98,16 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
 
     try {
       final userModel = await _authService.getUserProfile(user.uid);
+
+      if (userModel != null && !userModel.isAdopter) {
+        if (mounted) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Apenas contas de Adotantes podem solicitar adoção.')),
+          );
+        }
+        return;
+      }
+
       final ngo = await _ngoService.getNgoById(widget.animal.ngoId);
 
       if (ngo == null || ngo.phone.isEmpty) {
@@ -145,6 +155,69 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         });
       }
     }
+  }
+
+  // Constrói o elemento visual do botão de adoção ou mensagem explicativa conforme o perfil do usuário.
+  Widget _buildAdoptionActionButton(BuildContext context) {
+    final user = _authService.currentUser;
+
+    if (user == null) {
+      return PrimaryButton(
+        text: 'Quero Adotar',
+        isLoading: _isLoading,
+        onPressed: () => _handleAdoption(context),
+      );
+    }
+
+    return FutureBuilder<UserModel?>(
+      future: _authService.getUserProfile(user.uid),
+      builder: (context, snapshot) {
+        final userModel = snapshot.data;
+
+        if (userModel == null) {
+          return PrimaryButton(
+            text: 'Quero Adotar',
+            isLoading: _isLoading,
+            onPressed: () => _handleAdoption(context),
+          );
+        }
+
+        if (!userModel.isAdopter) {
+          return Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.info_outline, color: Colors.grey.shade600, size: 20),
+                const SizedBox(width: 8.0),
+                Expanded(
+                  child: Text(
+                    'Adoção disponível apenas para contas de Adotantes.',
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      color: Colors.grey.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return PrimaryButton(
+          text: 'Quero Adotar',
+          isLoading: _isLoading,
+          onPressed: () => _handleAdoption(context),
+        );
+      },
+    );
   }
 
   @override
@@ -203,11 +276,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
 
                   const SizedBox(height: 40.0),
 
-                  PrimaryButton(
-                    text: 'Quero Adotar',
-                    isLoading: _isLoading,
-                    onPressed: () => _handleAdoption(context),
-                  ),
+                  // Exibe o botão de ação ou a indicação de perfil não adotante.
+                  _buildAdoptionActionButton(context),
                 ],
               ),
             ),
