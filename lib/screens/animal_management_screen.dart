@@ -5,7 +5,7 @@ import '../widgets/animal_card.dart';
 import '../widgets/custom_app_bar.dart';
 import 'animal_form_screen.dart';
 
-// Renderiza a grade de animais cadastrados exclusivamente pela ONG autenticada.
+// Renderiza a lista compacta de animais cadastrados exclusivamente pela ONG autenticada.
 class AnimalManagementScreen extends StatelessWidget {
   final String ngoId;
   final AnimalService _animalService = AnimalService();
@@ -139,32 +139,20 @@ class AnimalManagementScreen extends StatelessWidget {
             );
           }
 
-          return GridView.builder(
+          return ListView.builder(
             padding: const EdgeInsets.all(16.0),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12.0,
-              mainAxisSpacing: 12.0,
-              childAspectRatio: 0.78,
-            ),
             itemCount: animals.length,
             itemBuilder: (context, index) {
               final animal = animals[index];
               return AnimalCard(
                 animal: animal,
-                isGrid: true,
-                trailingAction: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    icon: Icon(
-                      Icons.more_vert,
-                      color: Colors.grey.shade700,
-                      size: 20.0,
-                    ),
-                    onPressed: () => _showOptionsBottomSheet(context, animal),
+                isCompact: true,
+                trailingAction: IconButton(
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: Colors.grey.shade700,
                   ),
+                  onPressed: () => _showOptionsBottomSheet(context, animal),
                 ),
               );
             },
