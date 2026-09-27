@@ -41,7 +41,7 @@ class AuthService {
     await _firestore.collection('users').doc(credential.user!.uid).set({
       'name': name,
       'email': email,
-      'phone': phone,
+      'phone': phone.isEmpty ? null : phone,
       'role': role,
       'status': status,
       'ngoId': null,
@@ -114,11 +114,11 @@ class AuthService {
     }).timeout(networkTimeout);
   }
 
-  // Atualiza o nome e o telefone de contato no perfil do usuário.
+  // Atualiza o nome e o telefone de contato no perfil do usuário (telefone vazio é gravado como nulo).
   Future<void> updateUserProfile(String userId, String name, String phone) async {
     await _firestore.collection('users').doc(userId).update({
       'name': name,
-      'phone': phone,
+      'phone': phone.isEmpty ? null : phone,
     }).timeout(networkTimeout);
   }
 

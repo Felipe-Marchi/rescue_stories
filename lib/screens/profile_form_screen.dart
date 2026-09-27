@@ -33,6 +33,9 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
 
   bool _isLoading = false;
 
+  // Exige o telefone apenas de adotantes, que precisam ser contatados pela ONG.
+  bool get _isPhoneRequired => widget.user.isAdopter;
+
   @override
   void initState() {
     super.initState();
@@ -133,15 +136,16 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
 
               CustomTextField(
                 controller: _phoneController,
-                label: 'Telefone / WhatsApp',
+                label: _isPhoneRequired ? 'Telefone / WhatsApp' : 'Telefone / WhatsApp (opcional)',
                 keyboardType: TextInputType.phone,
-                isRequired: true,
+                isRequired: _isPhoneRequired,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                   PhoneInputFormatter(),
                 ],
                 validator: (value) {
                   final digits = onlyDigits(value ?? '');
+                  if (digits.isEmpty && !_isPhoneRequired) return null;
                   if (digits.length < 10) {
                     return 'Informe um telefone válido com DDD';
                   }

@@ -346,8 +346,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       UserCard(user: userModel),
                       const SizedBox(height: 16.0),
 
-                      // Exibe o aviso em destaque caso o usuário ainda não tenha telefone cadastrado.
-                      if (!userModel.hasPhone) ...[
+                      // Exibe o aviso em destaque caso o adotante ainda não tenha telefone cadastrado.
+                      if (userModel.isAdopter && !userModel.hasPhone) ...[
                         _buildPhoneWarning(userModel),
                         const SizedBox(height: 16.0),
                       ],
