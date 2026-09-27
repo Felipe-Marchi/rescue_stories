@@ -1,18 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../models/enums/notification_type.dart';
 import '../models/notification_model.dart';
-import '../services/animal_service.dart';
 import '../services/auth_service.dart';
 import '../services/notification_service.dart';
+import '../utils/notification_navigation.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/notification_tile.dart';
-import '../utils/app_feedback.dart';
-import '../widgets/info_banner.dart';
-import 'adoption_management_screen.dart';
-import 'animal_detail_screen.dart';
-import 'ngo_management_screen.dart';
-import 'profile_screen.dart';
 
 // Renderiza a central de notificações do usuário autenticado, com navegação para as telas relacionadas.
 class NotificationsScreen extends StatefulWidget {
@@ -25,7 +18,6 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   final AuthService _authService = AuthService();
   final NotificationService _notificationService = NotificationService();
-  final AnimalService _animalService = AnimalService();
 
   String? _userId;
   Stream<List<NotificationModel>>? _notificationsStream;
@@ -45,62 +37,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       unawaited(_notificationService.markAsRead(notification.id));
     }
 
-    final relatedId = notification.relatedId;
-
-    switch (notification.notificationType) {
-      case NotificationType.adoptionRequested:
-      case NotificationType.pendingRequestsReminder:
-        if (relatedId.isEmpty) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AdoptionManagementScreen(ngoId: relatedId),
-          ),
-        );
-        break;
-
-      case NotificationType.adoptionRequestSent:
-      case NotificationType.adoptionApproved:
-      case NotificationType.adoptionRejected:
-      case NotificationType.adoptionFollowUpReminder:
-        final messenger = ScaffoldMessenger.of(context);
-        final navigator = Navigator.of(context);
-        final animal = await _animalService.getAnimalById(relatedId);
-
-        if (animal == null) {
-          messenger.showSnackBar(buildAppSnackBar('Este animal não está mais disponível.', type: InfoBannerType.info));
-          return;
-        }
-
-        navigator.push(
-          MaterialPageRoute(
-            builder: (context) => AnimalDetailScreen(animal: animal),
-          ),
-        );
-        break;
-
-      case NotificationType.ngoSubmitted:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => NgoManagementScreen(),
-          ),
-        );
-        break;
-
-      case NotificationType.ngoApproved:
-      case NotificationType.ngoRejected:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ProfileScreen(),
-          ),
-        );
-        break;
-
-      case null:
-        break;
-    }
+    await openNotificationTarget(
+      navigator: Navigator.of(context),
+      messenger: ScaffoldMessenger.of(context),
+      type: notification.notificationType,
+      relatedId: notification.relatedId,
+    );
   }
 
   // Constrói o estado vazio amigável exibido quando não há notificações.

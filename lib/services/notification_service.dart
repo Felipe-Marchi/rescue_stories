@@ -58,6 +58,35 @@ class NotificationService {
     });
   }
 
+  // Recupera as notificações novas que chegam do servidor depois do início da escuta.
+  // Ignora as já existentes, as lidas e as criadas pelo próprio aparelho, que já tiveram aviso na tela.
+  Stream<NotificationModel> streamIncomingForUser(String userId) {
+    // A margem tolera pequenas diferenças entre o relógio do aparelho e o do servidor.
+    final startedAt = DateTime.now().subtract(const Duration(minutes: 1));
+    var isFirstSnapshot = true;
+
+    return _notificationsCollection
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .limit(_listLimit)
+        .snapshots()
+        .expand((snapshot) {
+      if (isFirstSnapshot) {
+        isFirstSnapshot = false;
+        return const <NotificationModel>[];
+      }
+
+      return snapshot.docChanges
+          .where((change) =>
+              change.type == DocumentChangeType.added && !change.doc.metadata.hasPendingWrites)
+          .map((change) {
+            final data = change.doc.data() as Map<String, dynamic>;
+            return NotificationModel.fromMap(change.doc.id, data);
+          })
+          .where((notification) => !notification.read && notification.createdAt.isAfter(startedAt));
+    });
+  }
+
   // Recupera em tempo real a quantidade de notificações ainda não lidas pelo usuário.
   Stream<int> streamUnreadCount(String userId) {
     return _notificationsCollection
