@@ -135,6 +135,15 @@ class AuthService {
     return userModel?.role;
   }
 
+  // Recupera os identificadores de todos os usuários com papel de administrador.
+  Future<List<String>> getAdminIds() async {
+    final snapshot = await _firestore
+        .collection('users')
+        .where('role', isEqualTo: UserRole.admin.name)
+        .get();
+    return snapshot.docs.map((doc) => doc.id).toList();
+  }
+
   // Recupera a lista de todos os usuários cadastrados no sistema em tempo real.
   Stream<List<UserModel>> getAllUsers() {
     return _firestore.collection('users').snapshots().map((snapshot) {
