@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/animal_model.dart';
 import '../models/enums/notification_type.dart';
+import '../models/enums/user_role.dart';
 import '../models/notification_model.dart';
 import '../utils/animal_gender_words.dart';
 import '../utils/reminder_config.dart';
@@ -122,6 +123,22 @@ class NotificationService {
     } catch (e) {
       debugPrint('Falha ao marcar todas as notificações como lidas: $e');
     }
+  }
+
+  // Dá boas-vindas ao usuário recém-cadastrado, com orientação adequada ao seu papel.
+  Future<void> notifyWelcome({
+    required String userId,
+    required String role,
+  }) {
+    final body = role == UserRole.ngoRep.name
+        ? 'Complete os dados da sua instituição para começar a publicar animais.'
+        : 'Que bom ter você aqui! Conheça os animais que esperam por um lar.';
+    return create(
+      userId: userId,
+      type: NotificationType.welcome,
+      title: 'Boas-vindas ao Histórias de Resgate!',
+      body: body,
+    );
   }
 
   // Avisa o representante da ONG sobre uma nova solicitação de adoção recebida.

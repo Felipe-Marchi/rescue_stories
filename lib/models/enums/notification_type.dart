@@ -26,4 +26,7 @@ enum NotificationType {
 
   // Adotante: lembrete periódico para contar como está o animal adotado.
   adoptionFollowUpReminder,
+
+  // Adotante e representante: boas-vindas ao concluir o cadastro.
+  welcome,
 }

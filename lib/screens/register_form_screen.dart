@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 import '../utils/formatters.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
@@ -30,6 +32,7 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
   final _phoneController = TextEditingController();
 
   final _authService = AuthService();
+  final _notificationService = NotificationService();
 
   bool _isLoading = false;
   String _selectedRole = UserRole.adopter.name;
@@ -54,13 +57,19 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
       });
 
       try {
-        await _authService.registerWithEmailAndPassword(
+        final credential = await _authService.registerWithEmailAndPassword(
           name: _nameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           phone: _phoneController.text.trim(),
           role: _selectedRole,
         );
+
+        // Dá boas-vindas pela central de notificações sem aguardar a rede.
+        unawaited(_notificationService.notifyWelcome(
+          userId: credential.user!.uid,
+          role: _selectedRole,
+        ));
 
         if (mounted) {
           if (_selectedRole == UserRole.ngoRep.name) {

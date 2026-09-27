@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/enums/notification_type.dart';
+import '../models/user_model.dart';
 import '../screens/adoption_management_screen.dart';
 import '../screens/animal_detail_screen.dart';
+import '../screens/ngo_form_screen.dart';
 import '../screens/ngo_management_screen.dart';
 import '../screens/profile_screen.dart';
 import '../services/animal_service.dart';
@@ -69,9 +71,38 @@ Future<void> openNotificationTarget({
       );
       break;
 
+    case NotificationType.welcome:
+      await _openWelcomeTarget(navigator);
+      break;
+
     case null:
       break;
   }
+}
+
+// Leva o adotante para a Home e o representante para completar a instituição ou para o Perfil.
+Future<void> _openWelcomeTarget(NavigatorState navigator) async {
+  final user = AuthService().currentUser;
+  if (user == null) return;
+
+  UserModel? profile;
+  try {
+    profile = await AuthService().getUserProfile(user.uid);
+  } catch (e) {
+    debugPrint('Falha ao carregar o perfil para abrir as boas-vindas: $e');
+  }
+
+  if (profile == null || !profile.isNgoRep) {
+    navigator.popUntil((route) => route.isFirst);
+    return;
+  }
+
+  final isPendingSetup = profile.isPendingSetup;
+  navigator.push(
+    MaterialPageRoute(
+      builder: (context) => isPendingSetup ? const NgoFormScreen() : const ProfileScreen(),
+    ),
+  );
 }
 
 // Abre a tela da notificação do Android tocada pelo usuário e a marca como lida na central.

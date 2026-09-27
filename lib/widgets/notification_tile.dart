@@ -21,6 +21,7 @@ class NotificationTile extends StatelessWidget {
     switch (notification.notificationType) {
       case NotificationType.adoptionApproved:
       case NotificationType.ngoApproved:
+      case NotificationType.welcome:
         return InfoBannerType.success;
       case NotificationType.adoptionRequested:
       case NotificationType.ngoSubmitted:
@@ -57,6 +58,8 @@ class NotificationTile extends StatelessWidget {
         return Icons.schedule;
       case NotificationType.adoptionFollowUpReminder:
         return Icons.pets;
+      case NotificationType.welcome:
+        return Icons.waving_hand;
       case null:
         return Icons.notifications_outlined;
     }
