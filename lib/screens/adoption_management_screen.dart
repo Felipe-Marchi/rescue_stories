@@ -9,6 +9,8 @@ import '../utils/whatsapp.dart';
 import '../widgets/adoption_request_card.dart';
 import '../widgets/count_pill.dart';
 import '../widgets/custom_app_bar.dart';
+import '../utils/app_feedback.dart';
+import '../widgets/info_banner.dart';
 
 // Renderiza a interface de gerenciamento de solicitações de adoção recebidas por uma ONG.
 class AdoptionManagementScreen extends StatefulWidget {
@@ -39,19 +41,26 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
   Future<void> _processStatusChange(AdoptionRequestModel request, AdoptionStatus newStatus) async {
     try {
       await _adoptionService.updateRequestStatus(request, newStatus);
-      if (mounted) {
-        final message = newStatus == AdoptionStatus.approved
-            ? 'Adoção aprovada com sucesso!'
-            : 'Solicitação recusada.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
+      if (!mounted) return;
+
+      if (newStatus == AdoptionStatus.approved) {
+        await showFeedbackDialog(
+          context,
+          title: 'Adoção aprovada!',
+          message: 'Avisamos o adotante pelo app. Agora é só combinar os próximos passos pelo WhatsApp.',
+          type: InfoBannerType.success,
+        );
+      } else {
+        await showFeedbackDialog(
+          context,
+          title: 'Solicitação recusada',
+          message: 'O adotante foi avisado pelo app.',
+          type: InfoBannerType.info,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Falha ao atualizar status da solicitação.')),
-        );
+        showAppSnackBar(context, 'Não conseguimos atualizar a solicitação. Tente novamente.', type: InfoBannerType.error);
       }
     }
   }
@@ -62,9 +71,7 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
     final rawPhone = adopter?.phone ?? '';
 
     if (rawPhone.isEmpty) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Este adotante ainda não possui telefone cadastrado.')),
-      );
+      messenger.showSnackBar(buildAppSnackBar('Este adotante ainda não cadastrou um telefone.', type: InfoBannerType.warning));
       return;
     }
 
@@ -81,9 +88,7 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
     final launched = await launchWhatsApp(rawPhone, message);
 
     if (!launched && mounted) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Não foi possível abrir o WhatsApp.')),
-      );
+      messenger.showSnackBar(buildAppSnackBar('Não conseguimos abrir o WhatsApp. Verifique se ele está instalado.', type: InfoBannerType.error));
     }
   }
 

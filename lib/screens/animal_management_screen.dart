@@ -3,6 +3,8 @@ import '../models/animal_model.dart';
 import '../services/animal_service.dart';
 import '../widgets/animal_card.dart';
 import '../widgets/custom_app_bar.dart';
+import '../utils/app_feedback.dart';
+import '../widgets/info_banner.dart';
 import 'animal_form_screen.dart';
 
 // Renderiza a lista compacta de animais cadastrados exclusivamente pela ONG autenticada.
@@ -80,26 +82,33 @@ class AnimalManagementScreen extends StatelessWidget {
 
   // Exibe o diálogo de confirmação para a exclusão do registro.
   void _confirmDelete(BuildContext context, AnimalModel animal) {
+    // Captura o aviso da tela antes de abrir o diálogo, pois o contexto do diálogo deixa de existir ao fechá-lo.
+    final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Excluir Registro'),
           content: Text('Tem certeza que deseja excluir ${animal.name}?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancelar'),
             ),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () async {
-                Navigator.pop(context);
-                await _animalService.deleteAnimal(animal.id, imageUrl: animal.imageUrl);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Registro removido com sucesso.')),
-                  );
+                Navigator.pop(dialogContext);
+                try {
+                  await _animalService.deleteAnimal(animal.id, imageUrl: animal.imageUrl);
+                  messenger
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(buildAppSnackBar('${animal.name} foi removido da vitrine.', type: InfoBannerType.success));
+                } catch (e) {
+                  messenger
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(buildAppSnackBar('Não conseguimos remover o animal. Tente novamente.', type: InfoBannerType.error));
                 }
               },
               child: const Text('Excluir'),

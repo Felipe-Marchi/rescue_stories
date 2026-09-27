@@ -9,6 +9,7 @@ import '../widgets/info_banner.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/secondary_button.dart';
 import '../widgets/user_card.dart';
+import '../utils/app_feedback.dart';
 import 'ngo_management_screen.dart';
 import 'user_management_screen.dart';
 import 'animal_management_screen.dart';
@@ -88,9 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await _authService.signOut();
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sessão encerrada com sucesso!')),
-      );
+      showAppSnackBar(context, 'Você saiu da sua conta. Até breve!', type: InfoBannerType.info);
       Navigator.pop(context);
     }
   }

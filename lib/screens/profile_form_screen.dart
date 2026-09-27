@@ -8,6 +8,8 @@ import '../utils/network.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
+import '../utils/app_feedback.dart';
+import '../widgets/info_banner.dart';
 
 // Renderiza a interface de formulário para a edição do nome e do telefone do usuário autenticado.
 class ProfileFormScreen extends StatefulWidget {
@@ -61,6 +63,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
 
       try {
         String message;
+        InfoBannerType messageType = InfoBannerType.success;
 
         // Grava os dados no Firestore. Se expirar, a escrita permanece na fila offline e será sincronizada depois.
         try {
@@ -69,25 +72,22 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
             _nameController.text.trim(),
             _phoneController.text.trim(),
           );
-          message = 'Perfil atualizado com sucesso!';
+          message = 'Perfil atualizado!';
         } on TimeoutException {
           message = 'Sem conexão. Seu perfil foi salvo no aparelho e será enviado automaticamente quando a internet voltar.';
+          messageType = InfoBannerType.warning;
         }
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
+          showAppSnackBar(context, message, type: messageType);
           Navigator.pop(context, true);
         }
       } catch (e) {
         if (mounted) {
           final message = isConnectionError(e)
               ? noConnectionMessage
-              : 'Falha ao atualizar o perfil. Tente novamente.';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
+              : 'Não conseguimos atualizar seu perfil. Tente novamente.';
+          showAppSnackBar(context, message, type: InfoBannerType.error);
         }
       } finally {
         if (mounted) {

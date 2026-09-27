@@ -10,6 +10,8 @@ import '../utils/network.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
+import '../utils/app_feedback.dart';
+import '../widgets/info_banner.dart';
 
 // Renderiza a interface para o cadastro inicial ou edição dos dados institucionais da ONG.
 class NgoFormScreen extends StatefulWidget {
@@ -85,6 +87,8 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
       try {
         final user = _authService.currentUser;
         String? successMessage;
+        InfoBannerType messageType = InfoBannerType.success;
+        bool submittedForReview = false;
 
         // Grava os dados no Firestore. Se expirar, as escritas permanecem na fila offline e serão sincronizadas depois.
         try {
@@ -100,7 +104,7 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
             );
 
             await _ngoService.updateNgo(updatedNgo);
-            successMessage = 'Dados da instituição atualizados com sucesso!';
+            successMessage = 'Dados da instituição atualizados!';
           } else if (user != null) {
             // Gera o identificador uma única vez para que novas tentativas não dupliquem a instituição.
             final ngoId = _pendingNgoId ??= _ngoService.newNgoId();
@@ -120,30 +124,39 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
               _ngoService.addNgo(newNgo),
               _authService.linkUserToNgo(user.uid, ngoId),
             ]);
-            successMessage = 'Dados enviados com sucesso! Aguarde a aprovação.';
+            submittedForReview = true;
             _notifyAdminsAboutSubmission();
           }
         } on TimeoutException {
           successMessage = 'Sem conexão. Os dados da ONG foram salvos no aparelho e serão enviados automaticamente quando a internet voltar.';
+          messageType = InfoBannerType.warning;
 
           // No cadastro, os dados seguem na fila offline, então os administradores também são avisados.
           if (widget.ngoToEdit == null) _notifyAdminsAboutSubmission();
         }
 
-        if (mounted && successMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(successMessage)),
+        if (!mounted) return;
+
+        if (submittedForReview) {
+          // Confirma o envio para análise com destaque antes de fechar o formulário.
+          await showFeedbackDialog(
+            context,
+            title: 'Cadastro enviado para análise!',
+            message: 'Nossa equipe vai analisar os dados da ${_nameController.text.trim()}. '
+                'Avisaremos você pelo app.',
+            type: InfoBannerType.success,
           );
+          if (mounted) Navigator.pop(context);
+        } else if (successMessage != null) {
+          showAppSnackBar(context, successMessage, type: messageType);
           Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
           final message = isConnectionError(e)
               ? noConnectionMessage
-              : 'Falha ao processar os dados. Tente novamente.';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
+              : 'Não conseguimos salvar os dados da instituição. Tente novamente.';
+          showAppSnackBar(context, message, type: InfoBannerType.error);
         }
       } finally {
         if (mounted) {

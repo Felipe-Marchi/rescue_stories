@@ -8,6 +8,7 @@ import '../widgets/approve_reject_buttons.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/info_banner.dart';
 import '../widgets/ngo_card.dart';
+import '../utils/app_feedback.dart';
 
 // Renderiza a interface de exibição detalhada e avaliação de uma organização.
 class NgoDetailScreen extends StatefulWidget {
@@ -52,20 +53,28 @@ class _NgoDetailScreenState extends State<NgoDetailScreen> {
         ));
       }
 
-      if (mounted) {
-        final message = newStatus == UserStatus.active
-            ? 'ONG aprovada com sucesso!'
-            : 'Solicitação reprovada.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
+      if (!mounted) return;
+
+      if (newStatus == UserStatus.active) {
+        await showFeedbackDialog(
+          context,
+          title: 'ONG aprovada!',
+          message: 'Avisamos o representante. A ${ngo.name} já pode publicar animais.',
+          type: InfoBannerType.success,
         );
-        Navigator.pop(context);
+      } else {
+        await showFeedbackDialog(
+          context,
+          title: 'Cadastro reprovado',
+          message: 'O representante foi avisado pelo app.',
+          type: InfoBannerType.info,
+        );
       }
+
+      if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Falha ao processar solicitação.')),
-        );
+        showAppSnackBar(context, 'Não conseguimos registrar a decisão. Tente novamente.', type: InfoBannerType.error);
       }
     } finally {
       if (mounted) {

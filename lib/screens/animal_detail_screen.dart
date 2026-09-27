@@ -15,6 +15,7 @@ import '../widgets/gender_tag.dart';
 import '../widgets/info_banner.dart';
 import '../widgets/ngo_card.dart';
 import '../widgets/primary_button.dart';
+import '../utils/app_feedback.dart';
 import 'login_form_screen.dart';
 import 'profile_form_screen.dart';
 
@@ -67,28 +68,11 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
   void _showRequestSentDialog() {
     if (!mounted) return;
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          icon: Icon(Icons.check_circle, color: Colors.green.shade600, size: 48.0),
-          title: const Text('Solicitação enviada!'),
-          content: const Text(
-            'A ONG vai analisar seu pedido e entrar em contato com você.',
-            textAlign: TextAlign.center,
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Entendi',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        );
-      },
+    showFeedbackDialog(
+      context,
+      title: 'Solicitação enviada!',
+      message: 'A ONG vai analisar seu pedido e entrar em contato com você.',
+      type: InfoBannerType.success,
     );
   }
 
@@ -118,27 +102,21 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
 
       if (userModel == null) {
         if (mounted) {
-          messenger.showSnackBar(
-            const SnackBar(content: Text('Não foi possível carregar seu perfil. Tente novamente.')),
-          );
+          messenger.showSnackBar(buildAppSnackBar('Não conseguimos carregar seu perfil. Tente novamente.', type: InfoBannerType.error));
         }
         return;
       }
 
       if (!userModel.isAdopter) {
         if (mounted) {
-          messenger.showSnackBar(
-            const SnackBar(content: Text('Apenas contas de Adotantes podem solicitar adoção.')),
-          );
+          messenger.showSnackBar(buildAppSnackBar('Só contas de adotante podem solicitar adoção.', type: InfoBannerType.info));
         }
         return;
       }
 
       // Exige o telefone do adotante antes de registrar a solicitação, para que a ONG possa retornar o contato.
       if (!userModel.hasPhone) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Adicione seu telefone para que a ONG possa entrar em contato.')),
-        );
+        messenger.showSnackBar(buildAppSnackBar('Adicione seu telefone para que a ONG possa entrar em contato.', type: InfoBannerType.warning));
 
         final profileToEdit = userModel;
         final saved = await navigator.push<bool>(
@@ -155,9 +133,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
 
         if (userModel == null || !userModel.hasPhone) {
           if (mounted) {
-            messenger.showSnackBar(
-              const SnackBar(content: Text('Não foi possível carregar seu perfil. Tente novamente.')),
-            );
+            messenger.showSnackBar(buildAppSnackBar('Não conseguimos carregar seu perfil. Tente novamente.', type: InfoBannerType.error));
           }
           return;
         }
@@ -167,9 +143,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
 
       if (ngo == null || ngo.phone.isEmpty) {
         if (mounted) {
-          messenger.showSnackBar(
-            const SnackBar(content: Text('A ONG responsável não possui telefone cadastrado.')),
-          );
+          messenger.showSnackBar(buildAppSnackBar('Esta ONG ainda não cadastrou um telefone para contato.', type: InfoBannerType.warning));
         }
         return;
       }
@@ -218,17 +192,13 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
         // A confirmação será exibida quando o adotante voltar do WhatsApp para o aplicativo.
         _awaitingWhatsAppReturn = true;
       } else if (mounted) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Não foi possível abrir o aplicativo do WhatsApp.')),
-        );
+        messenger.showSnackBar(buildAppSnackBar('Não conseguimos abrir o WhatsApp. Verifique se ele está instalado.', type: InfoBannerType.error));
         // A solicitação já foi registrada, então a confirmação é exibida imediatamente.
         _showRequestSentDialog();
       }
     } catch (e) {
       if (mounted) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Falha ao registrar solicitação de adoção. Tente novamente.')),
-        );
+        messenger.showSnackBar(buildAppSnackBar('Não conseguimos enviar sua solicitação. Tente novamente.', type: InfoBannerType.error));
       }
     } finally {
       if (mounted) {

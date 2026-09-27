@@ -7,6 +7,8 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import '../models/enums/user_role.dart';
+import '../utils/app_feedback.dart';
+import '../widgets/info_banner.dart';
 import 'ngo_form_screen.dart';
 
 // Renderiza a interface de formulário para o cadastro de novos usuários no sistema.
@@ -63,9 +65,7 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
         if (mounted) {
           if (_selectedRole == UserRole.ngoRep.name) {
             // Direciona o representante para o preenchimento obrigatório dos dados da ONG.
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Conta criada! Finalize os dados da instituição.')),
-            );
+            showAppSnackBar(context, 'Conta criada! Agora complete os dados da sua instituição.', type: InfoBannerType.success);
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const NgoFormScreen()),
@@ -73,23 +73,17 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
             );
           } else {
             // Retorna o adotante para a tela anterior.
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Conta criada com sucesso!')),
-            );
+            showAppSnackBar(context, 'Conta criada! Boas-vindas ao Histórias de Resgate.', type: InfoBannerType.success);
             Navigator.of(context)..pop()..pop();
           }
         }
       } on FirebaseAuthException catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(_authService.getRegisterErrorMessage(e))),
-          );
+          showAppSnackBar(context, _authService.getRegisterErrorMessage(e), type: InfoBannerType.error);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Falha ao criar conta. Tente novamente.')),
-          );
+          showAppSnackBar(context, 'Não conseguimos criar sua conta. Tente novamente.', type: InfoBannerType.error);
         }
       } finally {
         if (mounted) {

@@ -11,6 +11,8 @@ import '../widgets/custom_text_field.dart';
 import '../widgets/gender_selector.dart';
 import '../widgets/image_picker_field.dart';
 import '../widgets/primary_button.dart';
+import '../utils/app_feedback.dart';
+import '../widgets/info_banner.dart';
 
 // Renderiza a interface de formulário para o cadastro e edição de um animal no sistema.
 class AnimalFormScreen extends StatefulWidget {
@@ -111,31 +113,31 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
 
         // Etapa 2: gravação no Firestore. Se expirar, a escrita permanece na fila offline e será sincronizada depois.
         String message;
+        InfoBannerType messageType = InfoBannerType.success;
         try {
           if (isEditing) {
             await _animalService.updateAnimal(animal, oldImageUrl: oldImageUrl);
           } else {
             await _animalService.addAnimal(animal);
           }
-          message = isEditing ? 'Dados atualizados com sucesso!' : 'Animal cadastrado com sucesso!';
+          message = isEditing
+              ? 'Dados de ${animal.name} atualizados!'
+              : '${animal.name} já aparece na vitrine!';
         } on TimeoutException {
           message = 'Sem conexão. O animal foi salvo no aparelho e será enviado automaticamente quando a internet voltar.';
+          messageType = InfoBannerType.warning;
         }
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
+          showAppSnackBar(context, message, type: messageType);
           Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
           final message = isConnectionError(e)
               ? noConnectionMessage
-              : 'Falha ao salvar o animal. Tente novamente.';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
+              : 'Não conseguimos salvar o animal. Tente novamente.';
+          showAppSnackBar(context, message, type: InfoBannerType.error);
         }
       } finally {
         if (mounted) {

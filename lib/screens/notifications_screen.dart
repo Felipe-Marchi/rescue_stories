@@ -7,6 +7,8 @@ import '../services/auth_service.dart';
 import '../services/notification_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/notification_tile.dart';
+import '../utils/app_feedback.dart';
+import '../widgets/info_banner.dart';
 import 'adoption_management_screen.dart';
 import 'animal_detail_screen.dart';
 import 'ngo_management_screen.dart';
@@ -66,9 +68,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         final animal = await _animalService.getAnimalById(relatedId);
 
         if (animal == null) {
-          messenger.showSnackBar(
-            const SnackBar(content: Text('Este animal não está mais disponível.')),
-          );
+          messenger.showSnackBar(buildAppSnackBar('Este animal não está mais disponível.', type: InfoBannerType.info));
           return;
         }
 

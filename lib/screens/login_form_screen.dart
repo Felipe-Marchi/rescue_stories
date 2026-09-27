@@ -5,6 +5,8 @@ import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
+import '../utils/app_feedback.dart';
+import '../widgets/info_banner.dart';
 import 'register_form_screen.dart';
 
 // Renderiza a interface visual para autenticação de usuários no sistema.
@@ -86,9 +88,7 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                       : () async {
                           final email = resetEmailController.text.trim();
                           if (email.isEmpty || !email.contains('@')) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Por favor, informe um e-mail válido.')),
-                            );
+                            showAppSnackBar(context, 'Por favor, informe um e-mail válido.', type: InfoBannerType.warning);
                             return;
                           }
 
@@ -100,19 +100,11 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                             await _authService.sendPasswordResetEmail(email);
                             if (context.mounted) {
                               Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('E-mail enviado! Verifique sua caixa de entrada.'),
-                                ),
-                              );
+                              showAppSnackBar(context, 'E-mail enviado! Verifique sua caixa de entrada.', type: InfoBannerType.success);
                             }
                           } catch (e) {
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Falha ao enviar e-mail. Verifique o endereço informado.'),
-                                ),
-                              );
+                              showAppSnackBar(context, 'Falha ao enviar e-mail. Verifique o endereço informado.', type: InfoBannerType.error);
                             }
                           } finally {
                             if (context.mounted) {
@@ -152,22 +144,16 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login realizado com sucesso!')),
-          );
+          showAppSnackBar(context, 'Que bom ter você de volta!', type: InfoBannerType.success);
           Navigator.pop(context);
         }
       } on FirebaseAuthException catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(_authService.getLoginErrorMessage(e))),
-          );
+          showAppSnackBar(context, _authService.getLoginErrorMessage(e), type: InfoBannerType.error);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Falha ao realizar login. Tente novamente.')),
-          );
+          showAppSnackBar(context, 'Não conseguimos entrar agora. Tente novamente.', type: InfoBannerType.error);
         }
       } finally {
         if (mounted) {
