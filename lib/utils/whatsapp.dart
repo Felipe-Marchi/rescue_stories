@@ -1,4 +1,5 @@
 import 'package:url_launcher/url_launcher.dart';
+import 'animal_gender_words.dart';
 import 'formatters.dart';
 
 // Normaliza um telefone brasileiro para o formato internacional (55 + DDD + número) ou retorna null se inválido.
@@ -16,39 +17,6 @@ String? normalizeBrPhone(String phone) {
   return null;
 }
 
-// Reúne as palavras que variam conforme o sexo do animal para manter a concordância das mensagens.
-class _AnimalGenderWords {
-  final String article;
-  final String contraction;
-  final String pronoun;
-  final String adoptVerb;
-
-  const _AnimalGenderWords({
-    required this.article,
-    required this.contraction,
-    required this.pronoun,
-    required this.adoptVerb,
-  });
-
-  // Seleciona as palavras femininas para 'Fêmea' e masculinas para os demais casos.
-  factory _AnimalGenderWords.fromGender(String gender) {
-    if (gender == 'Fêmea') {
-      return const _AnimalGenderWords(
-        article: 'a',
-        contraction: 'da',
-        pronoun: 'por ela',
-        adoptVerb: 'adotá-la',
-      );
-    }
-    return const _AnimalGenderWords(
-      article: 'o',
-      contraction: 'do',
-      pronoun: 'por ele',
-      adoptVerb: 'adotá-lo',
-    );
-  }
-}
-
 // Monta a mensagem enviada pelo adotante à ONG ao demonstrar interesse em adotar um animal.
 String adoptionInterestMessage({
   required String adopterName,
@@ -57,7 +25,7 @@ String adoptionInterestMessage({
   required String email,
   required String phone,
 }) {
-  final words = _AnimalGenderWords.fromGender(animalGender);
+  final words = AnimalGenderWords.fromGender(animalGender);
 
   return 'Olá, tudo bem?\n\n'
       'Meu nome é $adopterName e conheci ${words.article} $animalName pelo aplicativo Histórias de Resgate. '
@@ -76,7 +44,7 @@ String adoptionRequestReplyMessage({
   required String animalName,
   required String animalGender,
 }) {
-  final words = _AnimalGenderWords.fromGender(animalGender);
+  final words = AnimalGenderWords.fromGender(animalGender);
 
   return 'Olá, $adopterName! Tudo bem?\n\n'
       'Aqui é da $ngoName. Recebemos sua solicitação de adoção ${words.contraction} $animalName '
