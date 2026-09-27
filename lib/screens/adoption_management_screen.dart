@@ -26,6 +26,14 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
   final AdoptionService _adoptionService = AdoptionService();
   final NgoService _ngoService = NgoService();
 
+  late final Stream<List<AdoptionRequestModel>> _requestsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _requestsStream = _adoptionService.getRequestsByNgo(widget.ngoId);
+  }
+
   // Atualiza a situação do pedido de adoção no banco de dados.
   Future<void> _processStatusChange(String requestId, AdoptionStatus newStatus) async {
     try {
@@ -114,67 +122,76 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        backgroundColor: Colors.grey.shade100,
-        appBar: const CustomAppBar(
-          title: 'Solicitações de Adoção',
-          bottom: TabBar(
-            labelColor: Colors.green,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: Colors.green,
-            tabs: [
-              Tab(
-                icon: Icon(Icons.pending_actions),
-                text: 'Pendentes',
+    // O fluxo envolve toda a tela para que a aba de pendentes exiba a contagem atualizada.
+    return StreamBuilder<List<AdoptionRequestModel>>(
+      stream: _requestsStream,
+      builder: (context, snapshot) {
+        final requests = snapshot.data ?? [];
+        final pendingCount = requests
+            .where((request) => request.status == AdoptionStatus.pending.name)
+            .length;
+
+        Widget body;
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          body = const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          body = const Center(child: Text('Erro ao carregar solicitações.'));
+        } else {
+          body = TabBarView(
+            children: [
+              _buildRequestList(
+                allRequests: requests,
+                status: AdoptionStatus.pending,
+                emptyMessage: 'Nenhuma solicitação pendente no momento.',
               ),
-              Tab(
-                icon: Icon(Icons.check_circle_outline),
-                text: 'Aprovadas',
+              _buildRequestList(
+                allRequests: requests,
+                status: AdoptionStatus.approved,
+                emptyMessage: 'Nenhuma adoção concluída ainda.',
               ),
-              Tab(
-                icon: Icon(Icons.highlight_off),
-                text: 'Recusadas',
+              _buildRequestList(
+                allRequests: requests,
+                status: AdoptionStatus.rejected,
+                emptyMessage: 'Nenhuma solicitação recusada.',
               ),
             ],
+          );
+        }
+
+        return DefaultTabController(
+          length: 3,
+          child: Scaffold(
+            backgroundColor: Colors.grey.shade100,
+            appBar: CustomAppBar(
+              title: 'Solicitações de Adoção',
+              bottom: TabBar(
+                labelColor: Colors.green,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: Colors.green,
+                tabs: [
+                  Tab(
+                    icon: Badge(
+                      isLabelVisible: pendingCount > 0,
+                      label: Text('$pendingCount'),
+                      child: const Icon(Icons.pending_actions),
+                    ),
+                    text: 'Pendentes',
+                  ),
+                  const Tab(
+                    icon: Icon(Icons.check_circle_outline),
+                    text: 'Aprovadas',
+                  ),
+                  const Tab(
+                    icon: Icon(Icons.highlight_off),
+                    text: 'Recusadas',
+                  ),
+                ],
+              ),
+            ),
+            body: body,
           ),
-        ),
-        body: StreamBuilder<List<AdoptionRequestModel>>(
-          stream: _adoptionService.getRequestsByNgo(widget.ngoId),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (snapshot.hasError) {
-              return const Center(child: Text('Erro ao carregar solicitações.'));
-            }
-
-            final requests = snapshot.data ?? [];
-
-            return TabBarView(
-              children: [
-                _buildRequestList(
-                  allRequests: requests,
-                  status: AdoptionStatus.pending,
-                  emptyMessage: 'Nenhuma solicitação pendente no momento.',
-                ),
-                _buildRequestList(
-                  allRequests: requests,
-                  status: AdoptionStatus.approved,
-                  emptyMessage: 'Nenhuma adoção concluída ainda.',
-                ),
-                _buildRequestList(
-                  allRequests: requests,
-                  status: AdoptionStatus.rejected,
-                  emptyMessage: 'Nenhuma solicitação recusada.',
-                ),
-              ],
-            );
-          },
-        ),
-      ),
+        );
+      },
     );
   }
 }

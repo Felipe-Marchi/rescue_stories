@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
+import '../services/adoption_service.dart';
 import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
 import '../widgets/custom_app_bar.dart';
@@ -26,8 +27,13 @@ class ProfileScreen extends StatefulWidget {
 // Gerencia o carregamento do perfil e o recarrega após a edição dos dados do usuário.
 class _ProfileScreenState extends State<ProfileScreen> {
   final _authService = AuthService();
+  final _adoptionService = AdoptionService();
 
   Future<UserModel?>? _profileFuture;
+
+  // Mantém o fluxo da contagem de pendentes da ONG para não recriar a consulta a cada reconstrução.
+  String? _pendingCountNgoId;
+  Stream<int>? _pendingCountStreamCache;
 
   @override
   void initState() {
@@ -166,6 +172,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  // Retorna o fluxo da contagem de pendentes da ONG informada, recriando-o apenas quando a ONG muda.
+  Stream<int> _pendingCountFor(String ngoId) {
+    if (_pendingCountNgoId != ngoId || _pendingCountStreamCache == null) {
+      _pendingCountNgoId = ngoId;
+      _pendingCountStreamCache = _adoptionService.streamPendingCountByNgo(ngoId);
+    }
+    return _pendingCountStreamCache!;
+  }
+
   // Constrói o painel de atalhos e informações institucionais da ONG.
   Widget _buildNgoPanel(BuildContext context, UserModel userModel) {
     // Exibe apenas o aviso de situação enquanto a instituição não estiver liberada.
@@ -200,6 +215,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
       );
     }
+
+    final pendingCountStream = _pendingCountFor(userModel.ngoId!);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 24.0),
@@ -236,7 +253,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
             contentPadding: EdgeInsets.zero,
             title: const Text('Solicitações de Adoção'),
             subtitle: const Text('Gerenciar intenções recebidas de adotantes'),
-            trailing: const Icon(Icons.chevron_right),
+            // Exibe a quantidade de solicitações pendentes em tempo real ao lado da seta.
+            trailing: StreamBuilder<int>(
+              stream: pendingCountStream,
+              builder: (context, snapshot) {
+                final count = snapshot.data ?? 0;
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (count > 0)
+                      Badge(
+                        label: Text('$count'),
+                        largeSize: 22.0,
+                        padding: const EdgeInsets.symmetric(horizontal: 7.0),
+                      ),
+                    const Icon(Icons.chevron_right),
+                  ],
+                );
+              },
+            ),
             onTap: () {
               Navigator.push(
                 context,

@@ -25,6 +25,15 @@ class AdoptionService {
     });
   }
 
+  // Recupera em tempo real a quantidade de solicitações pendentes de uma ONG.
+  Stream<int> streamPendingCountByNgo(String ngoId) {
+    return _requestsCollection
+        .where('ngoId', isEqualTo: ngoId)
+        .where('status', isEqualTo: AdoptionStatus.pending.name)
+        .snapshots()
+        .map((snapshot) => snapshot.size);
+  }
+
   // Atualiza a situação do pedido de adoção no banco de dados.
   Future<void> updateRequestStatus(String requestId, AdoptionStatus status) async {
     await _requestsCollection.doc(requestId).update({
