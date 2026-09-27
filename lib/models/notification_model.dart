@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'enums/notification_type.dart';
 
 // Representa uma notificação destinada a um usuário e exibida na central de notificações.
 class NotificationModel {
@@ -22,6 +23,14 @@ class NotificationModel {
     required this.read,
     required this.createdAt,
   });
+
+  // Converte o tipo gravado como texto no enum correspondente, retornando null para tipos desconhecidos.
+  NotificationType? get notificationType {
+    for (final value in NotificationType.values) {
+      if (value.name == type) return value;
+    }
+    return null;
+  }
 
   // Converte a instância em um mapa para gravação no Firestore, usando o horário do servidor na criação.
   Map<String, dynamic> toMap() {

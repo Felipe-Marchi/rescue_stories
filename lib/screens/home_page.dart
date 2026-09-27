@@ -6,6 +6,7 @@ import '../widgets/animal_card.dart';
 import '../services/animal_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/notification_bell.dart';
 import 'login_form_screen.dart';
 import 'profile_screen.dart';
 import 'animal_form_screen.dart';
@@ -78,6 +79,8 @@ class HomePage extends StatelessWidget {
         title: 'Histórias de Resgate',
         isMainPage: true,
         actions: [
+          // Exibe o sino de notificações apenas para usuários autenticados.
+          const NotificationBell(),
           IconButton(
             icon: const Icon(Icons.account_circle, color: Colors.green, size: 32.0),
             onPressed: () => _handleProfileNavigation(context),

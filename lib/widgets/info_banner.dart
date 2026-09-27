@@ -8,6 +8,55 @@ enum InfoBannerType {
   error,
 }
 
+// Reúne as cores e o ícone padrão de cada tipo de aviso, reutilizados por outros componentes (ex.: notificações).
+class InfoBannerStyle {
+  final Color backgroundColor;
+  final Color borderColor;
+  final Color accentColor;
+  final IconData icon;
+
+  const InfoBannerStyle({
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.accentColor,
+    required this.icon,
+  });
+
+  // Retorna o estilo visual correspondente ao tipo de aviso informado.
+  factory InfoBannerStyle.of(InfoBannerType type) {
+    switch (type) {
+      case InfoBannerType.info:
+        return InfoBannerStyle(
+          backgroundColor: Colors.grey.shade100,
+          borderColor: Colors.grey.shade300,
+          accentColor: Colors.grey.shade700,
+          icon: Icons.info_outline,
+        );
+      case InfoBannerType.warning:
+        return InfoBannerStyle(
+          backgroundColor: Colors.amber.shade50,
+          borderColor: Colors.amber.shade300,
+          accentColor: Colors.amber.shade800,
+          icon: Icons.warning_amber_rounded,
+        );
+      case InfoBannerType.success:
+        return InfoBannerStyle(
+          backgroundColor: Colors.green.shade50,
+          borderColor: Colors.green.shade200,
+          accentColor: Colors.green.shade700,
+          icon: Icons.check_circle,
+        );
+      case InfoBannerType.error:
+        return InfoBannerStyle(
+          backgroundColor: Colors.red.shade50,
+          borderColor: Colors.red.shade200,
+          accentColor: Colors.red.shade700,
+          icon: Icons.error_outline,
+        );
+    }
+  }
+}
+
 // Renderiza um aviso padronizado em caixa colorida, com ícone, título opcional, mensagem e ação opcional ao tocar.
 class InfoBanner extends StatelessWidget {
   final InfoBannerType type;
@@ -29,75 +78,20 @@ class InfoBanner extends StatelessWidget {
     this.compact = false,
   });
 
-  // Retorna a cor de fundo correspondente ao tipo do aviso.
-  Color get _backgroundColor {
-    switch (type) {
-      case InfoBannerType.info:
-        return Colors.grey.shade100;
-      case InfoBannerType.warning:
-        return Colors.amber.shade50;
-      case InfoBannerType.success:
-        return Colors.green.shade50;
-      case InfoBannerType.error:
-        return Colors.red.shade50;
-    }
-  }
-
-  // Retorna a cor da borda correspondente ao tipo do aviso.
-  Color get _borderColor {
-    switch (type) {
-      case InfoBannerType.info:
-        return Colors.grey.shade300;
-      case InfoBannerType.warning:
-        return Colors.amber.shade300;
-      case InfoBannerType.success:
-        return Colors.green.shade200;
-      case InfoBannerType.error:
-        return Colors.red.shade200;
-    }
-  }
-
-  // Retorna a cor de destaque (ícones) correspondente ao tipo do aviso.
-  Color get _accentColor {
-    switch (type) {
-      case InfoBannerType.info:
-        return Colors.grey.shade700;
-      case InfoBannerType.warning:
-        return Colors.amber.shade800;
-      case InfoBannerType.success:
-        return Colors.green.shade700;
-      case InfoBannerType.error:
-        return Colors.red.shade700;
-    }
-  }
-
-  // Retorna o ícone padrão correspondente ao tipo do aviso.
-  IconData get _defaultIcon {
-    switch (type) {
-      case InfoBannerType.info:
-        return Icons.info_outline;
-      case InfoBannerType.warning:
-        return Icons.warning_amber_rounded;
-      case InfoBannerType.success:
-        return Icons.check_circle;
-      case InfoBannerType.error:
-        return Icons.error_outline;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final style = InfoBannerStyle.of(type);
     final borderRadius = BorderRadius.circular(12.0);
 
     final content = Container(
       padding: EdgeInsets.all(compact ? 10.0 : 16.0),
       decoration: BoxDecoration(
         borderRadius: borderRadius,
-        border: Border.all(color: _borderColor),
+        border: Border.all(color: style.borderColor),
       ),
       child: Row(
         children: [
-          Icon(icon ?? _defaultIcon, color: _accentColor, size: compact ? 20.0 : 28.0),
+          Icon(icon ?? style.icon, color: style.accentColor, size: compact ? 20.0 : 28.0),
           SizedBox(width: compact ? 8.0 : 12.0),
           Expanded(
             child: Column(
@@ -127,7 +121,7 @@ class InfoBanner extends StatelessWidget {
           ),
           if (onTap != null) ...[
             const SizedBox(width: 8.0),
-            Icon(Icons.chevron_right, color: _accentColor),
+            Icon(Icons.chevron_right, color: style.accentColor),
           ],
         ],
       ),
@@ -135,7 +129,7 @@ class InfoBanner extends StatelessWidget {
 
     // Aplica o fundo por meio do Material para que o efeito de toque fique visível sobre a cor.
     return Material(
-      color: _backgroundColor,
+      color: style.backgroundColor,
       borderRadius: borderRadius,
       child: onTap == null
           ? content
