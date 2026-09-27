@@ -8,13 +8,15 @@ import '../services/auth_service.dart';
 import '../utils/formatters.dart';
 import 'custom_network_image.dart';
 import 'gender_tag.dart';
+import 'whatsapp_button.dart';
 
 // Renderiza o cartão individual com os dados combinados da solicitação de adoção, animal e adotante.
 class AdoptionRequestCard extends StatelessWidget {
   final AdoptionRequestModel request;
   final VoidCallback? onApprove;
   final VoidCallback? onReject;
-  final VoidCallback? onWhatsApp;
+  // Recebe o animal e o adotante já carregados pelo cartão para iniciar a conversa no WhatsApp.
+  final void Function(AnimalModel? animal, UserModel? adopter)? onWhatsApp;
 
   final AnimalService _animalService = AnimalService();
   final AuthService _authService = AuthService();
@@ -97,6 +99,16 @@ class AdoptionRequestCard extends StatelessWidget {
                                     color: Colors.grey.shade600,
                                   ),
                                 ),
+                              // Exibe o telefone do adotante ou indica a ausência do contato em contas antigas.
+                              if (adopter != null)
+                                Text(
+                                  adopter.hasPhone ? adopter.phone! : 'Telefone não informado',
+                                  style: TextStyle(
+                                    fontSize: 13.0,
+                                    color: Colors.grey.shade600,
+                                    fontStyle: adopter.hasPhone ? FontStyle.normal : FontStyle.italic,
+                                  ),
+                                ),
                               const SizedBox(height: 4.0),
                               Text(
                                 'Data: $formattedDate',
@@ -115,15 +127,18 @@ class AdoptionRequestCard extends StatelessWidget {
                     const Divider(height: 24.0),
 
                     if (request.status == AdoptionStatus.pending.name) ...[
+                      // Exibe o contato via WhatsApp em linha própria, habilitado após o carregamento do adotante.
+                      if (onWhatsApp != null) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: WhatsAppButton(
+                            onPressed: adopter == null ? null : () => onWhatsApp!(animal, adopter),
+                          ),
+                        ),
+                        const SizedBox(height: 8.0),
+                      ],
                       Row(
                         children: [
-                          if (onWhatsApp != null)
-                            IconButton(
-                              icon: const Icon(Icons.chat, color: Colors.green),
-                              tooltip: 'Conversar no WhatsApp',
-                              onPressed: onWhatsApp,
-                            ),
-                          const SizedBox(width: 8.0),
                           if (onReject != null)
                             Expanded(
                               child: OutlinedButton(

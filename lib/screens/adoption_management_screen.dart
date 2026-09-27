@@ -98,11 +98,11 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
           request: request,
           onApprove: () => _processStatusChange(request.id, AdoptionStatus.approved),
           onReject: () => _processStatusChange(request.id, AdoptionStatus.rejected),
-          onWhatsApp: () {
+          onWhatsApp: (animal, adopter) {
             _launchWhatsApp(
-              rawPhone: '',
-              animalName: '',
-              adopterName: '',
+              rawPhone: adopter?.phone ?? '',
+              animalName: animal?.name ?? '',
+              adopterName: adopter?.name ?? '',
             );
           },
         );
