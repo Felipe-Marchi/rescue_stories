@@ -41,6 +41,8 @@ dependencies:
   firebase_storage: ^13.5.0
   url_launcher: ^6.3.1
   font_awesome_flutter: ^11.0.0
+  flutter_local_notifications: ^22.3.1
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
