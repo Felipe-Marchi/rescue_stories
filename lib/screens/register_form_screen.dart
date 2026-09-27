@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../utils/formatters.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
@@ -23,6 +25,7 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   final _authService = AuthService();
 
@@ -34,6 +37,7 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -49,6 +53,7 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
           name: _nameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
+          phone: _phoneController.text.trim(),
           role: _selectedRole,
         );
 
@@ -185,6 +190,25 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
                 validator: (value) {
                   if (value != null && value.isNotEmpty && !value.contains('@')) {
                     return 'Informe um e-mail válido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+
+              CustomTextField(
+                controller: _phoneController,
+                label: 'Telefone / WhatsApp',
+                keyboardType: TextInputType.phone,
+                isRequired: true,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  PhoneInputFormatter(),
+                ],
+                validator: (value) {
+                  final digits = onlyDigits(value ?? '');
+                  if (digits.length < 10) {
+                    return 'Informe um telefone válido com DDD';
                   }
                   return null;
                 },

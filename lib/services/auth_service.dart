@@ -25,6 +25,7 @@ class AuthService {
     required String name,
     required String email,
     required String password,
+    required String phone,
     required String role,
   }) async {
     // Cria a identidade no Firebase Auth
@@ -40,6 +41,7 @@ class AuthService {
     await _firestore.collection('users').doc(credential.user!.uid).set({
       'name': name,
       'email': email,
+      'phone': phone,
       'role': role,
       'status': status,
       'ngoId': null,
