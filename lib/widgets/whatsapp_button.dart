@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'primary_button.dart';
+import 'secondary_button.dart';
 
-// Renderiza o botão padronizado de contato via WhatsApp com o ícone e a cor oficiais da marca.
+// Renderiza o botão padronizado de contato via WhatsApp em estilo secundário, com o ícone e as cores da marca.
 class WhatsAppButton extends StatelessWidget {
-  // Cor oficial da marca WhatsApp, reutilizada em outros pontos de contato do aplicativo.
+  // Cor oficial da marca WhatsApp, usada no contorno e no ícone.
   static const Color brandColor = Color(0xFF25D366);
+
+  // Verde escuro da marca WhatsApp, usado no texto para garantir contraste sobre o fundo branco.
+  static const Color textColor = Color(0xFF128C7E);
 
   final VoidCallback? onPressed;
   final String label;
@@ -19,10 +22,11 @@ class WhatsAppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PrimaryButton(
+    return SecondaryButton(
       text: label,
       color: brandColor,
-      icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 20.0),
+      textColor: textColor,
+      icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 20.0, color: brandColor),
       onPressed: onPressed,
     );
   }
