@@ -13,6 +13,7 @@ import '../widgets/gender_tag.dart';
 import '../widgets/ngo_card.dart';
 import '../widgets/primary_button.dart';
 import 'login_form_screen.dart';
+import 'profile_form_screen.dart';
 
 // Renderiza a interface de exibição detalhada dos dados de um animal e o acionamento de adoção.
 class AnimalDetailScreen extends StatefulWidget {
@@ -53,17 +54,56 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
     });
 
     final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
     try {
-      final userModel = await _authService.getUserProfile(user.uid);
+      UserModel? userModel = await _authService.getUserProfile(user.uid);
 
-      if (userModel != null && !userModel.isAdopter) {
+      if (userModel == null) {
+        if (mounted) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Não foi possível carregar seu perfil. Tente novamente.')),
+          );
+        }
+        return;
+      }
+
+      if (!userModel.isAdopter) {
         if (mounted) {
           messenger.showSnackBar(
             const SnackBar(content: Text('Apenas contas de Adotantes podem solicitar adoção.')),
           );
         }
         return;
+      }
+
+      // Exige o telefone do adotante antes de registrar a solicitação, para que a ONG possa retornar o contato.
+      if (!userModel.hasPhone) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Adicione seu telefone para que a ONG possa entrar em contato.')),
+        );
+
+        final profileToEdit = userModel;
+        final saved = await navigator.push<bool>(
+          MaterialPageRoute(
+            builder: (context) => ProfileFormScreen(user: profileToEdit),
+          ),
+        );
+
+        // Encerra sem criar a solicitação caso o adotante volte sem salvar o telefone.
+        if (saved != true) return;
+
+        // Recarrega o perfil atualizado e continua o fluxo automaticamente.
+        userModel = await _authService.getUserProfile(user.uid);
+
+        if (userModel == null || !userModel.hasPhone) {
+          if (mounted) {
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Não foi possível carregar seu perfil. Tente novamente.')),
+            );
+          }
+          return;
+        }
       }
 
       final ngo = await _ngoService.getNgoById(widget.animal.ngoId);
@@ -89,14 +129,16 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
 
       await _adoptionService.createAdoptionRequest(request);
 
-      final adopterName = userModel?.name ?? 'Um adotante';
-      final adopterEmail = userModel?.email ?? user.email ?? '';
+      final adopterName = userModel.name;
+      final adopterEmail = userModel.email.isNotEmpty ? userModel.email : (user.email ?? '');
+      final adopterPhone = userModel.phone ?? '';
 
       // Formata a mensagem e redireciona para a conversa com a ONG no WhatsApp.
       final message =
           '🐾 *Histórias de Resgate*\n\n'
           'Olá! Tenho interesse em adotar o pet *${widget.animal.name}* que vi no aplicativo.\n\n'
-          '👤 *Adotante:* $adopterName ($adopterEmail)\n\n'
+          '👤 *Adotante:* $adopterName ($adopterEmail)\n'
+          '📞 *Telefone:* $adopterPhone\n\n'
           'Gostaria de saber os próximos passos!';
 
       final launched = await launchWhatsApp(ngo.phone, message);
