@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/adoption_request_model.dart';
+import '../models/animal_model.dart';
 import '../models/enums/adoption_status.dart';
+import '../models/user_model.dart';
 import '../services/adoption_service.dart';
+import '../services/ngo_service.dart';
 import '../utils/whatsapp.dart';
 import '../widgets/adoption_request_card.dart';
 import '../widgets/custom_app_bar.dart';
@@ -21,6 +24,7 @@ class AdoptionManagementScreen extends StatefulWidget {
 
 class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
   final AdoptionService _adoptionService = AdoptionService();
+  final NgoService _ngoService = NgoService();
 
   // Atualiza a situação do pedido de adoção no banco de dados.
   Future<void> _processStatusChange(String requestId, AdoptionStatus newStatus) async {
@@ -43,13 +47,10 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
     }
   }
 
-  // Formata e abre o aplicativo do WhatsApp com a mensagem codificada para o adotante.
-  Future<void> _launchWhatsApp({
-    required String rawPhone,
-    required String animalName,
-    required String adopterName,
-  }) async {
+  // Monta a resposta da ONG ao adotante e abre a conversa no WhatsApp.
+  Future<void> _launchWhatsApp(AnimalModel? animal, UserModel? adopter) async {
     final messenger = ScaffoldMessenger.of(context);
+    final rawPhone = adopter?.phone ?? '';
 
     if (rawPhone.isEmpty) {
       messenger.showSnackBar(
@@ -58,8 +59,15 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
       return;
     }
 
-    final message =
-        'Olá $adopterName! Sou da ONG responsável pelo pet $animalName no Histórias de Resgate. Vamos conversar sobre a sua solicitação de adoção!';
+    // Recupera o nome da ONG aproveitando o cache do serviço.
+    final ngo = await _ngoService.getNgoById(widget.ngoId);
+
+    final message = adoptionRequestReplyMessage(
+      adopterName: adopter?.name ?? '',
+      ngoName: (ngo != null && ngo.name.isNotEmpty) ? ngo.name : 'ONG responsável',
+      animalName: animal?.name ?? 'pet',
+      animalGender: animal?.gender ?? 'Macho',
+    );
 
     final launched = await launchWhatsApp(rawPhone, message);
 
@@ -98,13 +106,7 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
           request: request,
           onApprove: () => _processStatusChange(request.id, AdoptionStatus.approved),
           onReject: () => _processStatusChange(request.id, AdoptionStatus.rejected),
-          onWhatsApp: (animal, adopter) {
-            _launchWhatsApp(
-              rawPhone: adopter?.phone ?? '',
-              animalName: animal?.name ?? '',
-              adopterName: adopter?.name ?? '',
-            );
-          },
+          onWhatsApp: (animal, adopter) => _launchWhatsApp(animal, adopter),
         );
       },
     );

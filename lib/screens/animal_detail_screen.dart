@@ -135,12 +135,13 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
       final adopterPhone = userModel.phone ?? '';
 
       // Formata a mensagem e redireciona para a conversa com a ONG no WhatsApp.
-      final message =
-          '🐾 *Histórias de Resgate*\n\n'
-          'Olá! Tenho interesse em adotar o pet *${widget.animal.name}* que vi no aplicativo.\n\n'
-          '👤 *Adotante:* $adopterName ($adopterEmail)\n'
-          '📞 *Telefone:* $adopterPhone\n\n'
-          'Gostaria de saber os próximos passos!';
+      final message = adoptionInterestMessage(
+        adopterName: adopterName,
+        animalName: widget.animal.name,
+        animalGender: widget.animal.gender,
+        email: adopterEmail,
+        phone: adopterPhone,
+      );
 
       final launched = await launchWhatsApp(ngo.phone, message);
 
