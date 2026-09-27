@@ -10,7 +10,7 @@ import 'approve_reject_buttons.dart';
 import 'custom_network_image.dart';
 import 'gender_tag.dart';
 import 'info_banner.dart';
-import 'whatsapp_button.dart';
+import 'whatsapp_icon_button.dart';
 
 // Renderiza o cartão individual com os dados combinados da solicitação de adoção, animal e adotante.
 class AdoptionRequestCard extends StatelessWidget {
@@ -32,6 +32,72 @@ class AdoptionRequestCard extends StatelessWidget {
     this.onWhatsApp,
   });
 
+  // Constrói a linha de telefone do adotante com o atalho de WhatsApp quando o contato estiver disponível.
+  Widget _buildPhoneRow(AnimalModel? animal, UserModel adopter) {
+    if (!adopter.hasPhone) {
+      return Text(
+        'Telefone não informado',
+        style: TextStyle(
+          fontSize: 13.0,
+          color: Colors.grey.shade600,
+          fontStyle: FontStyle.italic,
+        ),
+      );
+    }
+
+    // Exibe o atalho de contato nas solicitações pendentes e aprovadas; nas recusadas, não.
+    final showWhatsApp = onWhatsApp != null && request.status != AdoptionStatus.rejected.name;
+
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            adopter.phone!,
+            style: TextStyle(
+              fontSize: 13.0,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ),
+        if (showWhatsApp) ...[
+          const SizedBox(width: 8.0),
+          WhatsAppIconButton(
+            onPressed: () => onWhatsApp!(animal, adopter),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // Constrói a parte inferior do cartão com as ações da solicitação pendente ou o aviso de situação.
+  Widget _buildFooter() {
+    if (request.status == AdoptionStatus.pending.name) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: ApproveRejectButtons(
+          compact: true,
+          onApprove: onApprove,
+          onReject: onReject,
+        ),
+      );
+    }
+
+    if (request.status == AdoptionStatus.approved.name) {
+      return const InfoBanner(
+        type: InfoBannerType.success,
+        message: 'Adoção Concluída e Aprovada',
+        compact: true,
+      );
+    }
+
+    return const InfoBanner(
+      type: InfoBannerType.error,
+      icon: Icons.cancel,
+      message: 'Solicitação Recusada',
+      compact: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -41,7 +107,7 @@ class AdoptionRequestCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.0),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         child: FutureBuilder<AnimalModel?>(
           future: _animalService.getAnimalById(request.animalId),
           builder: (context, animalSnapshot) {
@@ -67,8 +133,8 @@ class AdoptionRequestCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8.0),
                           child: CustomNetworkImage(
                             imageUrl: animal?.imageUrl ?? '',
-                            width: 60.0,
-                            height: 60.0,
+                            width: 56.0,
+                            height: 56.0,
                           ),
                         ),
                         const SizedBox(width: 12.0),
@@ -76,13 +142,40 @@ class AdoptionRequestCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                animalName,
-                                style: const TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
+                              // Exibe o nome e o sexo do animal à esquerda e a data da solicitação à direita.
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            animalName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 16.0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                        if (animal != null) ...[
+                                          const SizedBox(width: 6.0),
+                                          GenderTag(gender: animal.gender),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8.0),
+                                  Text(
+                                    formattedDate,
+                                    style: TextStyle(
+                                      fontSize: 12.0,
+                                      color: Colors.grey.shade500,
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 4.0),
                               Text(
@@ -102,59 +195,14 @@ class AdoptionRequestCard extends StatelessWidget {
                                   ),
                                 ),
                               // Exibe o telefone do adotante ou indica a ausência do contato em contas antigas.
-                              if (adopter != null)
-                                Text(
-                                  adopter.hasPhone ? adopter.phone! : 'Telefone não informado',
-                                  style: TextStyle(
-                                    fontSize: 13.0,
-                                    color: Colors.grey.shade600,
-                                    fontStyle: adopter.hasPhone ? FontStyle.normal : FontStyle.italic,
-                                  ),
-                                ),
-                              const SizedBox(height: 4.0),
-                              Text(
-                                'Data: $formattedDate',
-                                style: TextStyle(
-                                  fontSize: 12.0,
-                                  color: Colors.grey.shade500,
-                                ),
-                              ),
+                              if (adopter != null) _buildPhoneRow(animal, adopter),
                             ],
                           ),
                         ),
-                        if (animal != null)
-                          GenderTag(gender: animal.gender),
                       ],
                     ),
-                    const Divider(height: 24.0),
-
-                    if (request.status == AdoptionStatus.pending.name) ...[
-                      // Exibe o contato via WhatsApp em linha própria, habilitado após o carregamento do adotante.
-                      if (onWhatsApp != null) ...[
-                        SizedBox(
-                          width: double.infinity,
-                          child: WhatsAppButton(
-                            onPressed: adopter == null ? null : () => onWhatsApp!(animal, adopter),
-                          ),
-                        ),
-                        const SizedBox(height: 8.0),
-                      ],
-                      ApproveRejectButtons(
-                        onApprove: onApprove,
-                        onReject: onReject,
-                      ),
-                    ] else if (request.status == AdoptionStatus.approved.name) ...[
-                      const InfoBanner(
-                        type: InfoBannerType.success,
-                        message: 'Adoção Concluída e Aprovada',
-                      ),
-                    ] else ...[
-                      const InfoBanner(
-                        type: InfoBannerType.error,
-                        icon: Icons.cancel,
-                        message: 'Solicitação Recusada',
-                      ),
-                    ],
+                    const Divider(height: 20.0),
+                    _buildFooter(),
                   ],
                 );
               },
