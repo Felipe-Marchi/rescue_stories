@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../models/ngo_model.dart';
 import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
+import '../services/notification_service.dart';
 import '../utils/formatters.dart';
 import '../utils/network.dart';
 import '../widgets/custom_app_bar.dart';
@@ -34,6 +35,7 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
 
   final _authService = AuthService();
   final _ngoService = NgoService();
+  final _notificationService = NotificationService();
 
   bool _isLoading = false;
 
@@ -60,6 +62,17 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
     _phoneController.dispose();
     _addressController.dispose();
     super.dispose();
+  }
+
+  // Avisa os administradores sobre a nova instituição sem aguardar a rede nem interromper o envio.
+  void _notifyAdminsAboutSubmission() {
+    final ngoId = _pendingNgoId;
+    if (ngoId == null) return;
+
+    unawaited(_notificationService.notifyNgoSubmitted(
+      ngoId: ngoId,
+      ngoName: _nameController.text.trim(),
+    ));
   }
 
   // Valida os dados, grava a instituição no banco ou atualiza o registro existente.
@@ -108,9 +121,13 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
               _authService.linkUserToNgo(user.uid, ngoId),
             ]);
             successMessage = 'Dados enviados com sucesso! Aguarde a aprovação.';
+            _notifyAdminsAboutSubmission();
           }
         } on TimeoutException {
           successMessage = 'Sem conexão. Os dados da ONG foram salvos no aparelho e serão enviados automaticamente quando a internet voltar.';
+
+          // No cadastro, os dados seguem na fila offline, então os administradores também são avisados.
+          if (widget.ngoToEdit == null) _notifyAdminsAboutSubmission();
         }
 
         if (mounted && successMessage != null) {

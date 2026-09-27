@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/dtos/ngo_request_model.dart';
 import '../models/enums/user_status.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 import '../widgets/approve_reject_buttons.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/info_banner.dart';
@@ -22,6 +24,7 @@ class NgoDetailScreen extends StatefulWidget {
 
 class _NgoDetailScreenState extends State<NgoDetailScreen> {
   final AuthService _authService = AuthService();
+  final NotificationService _notificationService = NotificationService();
   bool _isLoading = false;
 
   // Atualiza o status da solicitação e encerra a exibição da tela.
@@ -32,6 +35,22 @@ class _NgoDetailScreenState extends State<NgoDetailScreen> {
 
     try {
       await _authService.updateUserStatus(widget.request.user.id, newStatus.name);
+
+      // Avisa o representante sobre a decisão sem aguardar a rede.
+      final ngo = widget.request.ngo;
+      if (newStatus == UserStatus.active) {
+        unawaited(_notificationService.notifyNgoApproved(
+          representativeId: widget.request.user.id,
+          ngoId: ngo.id,
+          ngoName: ngo.name,
+        ));
+      } else if (newStatus == UserStatus.rejected) {
+        unawaited(_notificationService.notifyNgoRejected(
+          representativeId: widget.request.user.id,
+          ngoId: ngo.id,
+          ngoName: ngo.name,
+        ));
+      }
 
       if (mounted) {
         final message = newStatus == UserStatus.active
