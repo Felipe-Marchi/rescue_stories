@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
 import '../models/adoption_request_model.dart';
@@ -6,6 +7,7 @@ import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
 import '../services/adoption_service.dart';
+import '../services/notification_service.dart';
 import '../utils/whatsapp.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
@@ -29,12 +31,66 @@ class AnimalDetailScreen extends StatefulWidget {
   State<AnimalDetailScreen> createState() => _AnimalDetailScreenState();
 }
 
-class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
+class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBindingObserver {
   final AuthService _authService = AuthService();
   final NgoService _ngoService = NgoService();
   final AdoptionService _adoptionService = AdoptionService();
+  final NotificationService _notificationService = NotificationService();
 
   bool _isLoading = false;
+
+  // Indica que o WhatsApp foi aberto após uma solicitação e que a confirmação deve aparecer no retorno ao app.
+  bool _awaitingWhatsAppReturn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Exibe a confirmação da solicitação uma única vez quando o adotante volta do WhatsApp para o aplicativo.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _awaitingWhatsAppReturn) {
+      _awaitingWhatsAppReturn = false;
+      _showRequestSentDialog();
+    }
+  }
+
+  // Exibe o diálogo de confirmação de envio da solicitação de adoção.
+  void _showRequestSentDialog() {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          icon: Icon(Icons.check_circle, color: Colors.green.shade600, size: 48.0),
+          title: const Text('Solicitação enviada!'),
+          content: const Text(
+            'A ONG vai analisar seu pedido e entrar em contato com você.',
+            textAlign: TextAlign.center,
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Entendi',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   // Gerencia o registro da intenção de adoção e a abertura do WhatsApp da ONG.
   Future<void> _handleAdoption(BuildContext context) async {
@@ -131,6 +187,19 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
       await _adoptionService.createAdoptionRequest(request);
 
       final adopterName = userModel.name;
+
+      // Avisa a ONG e confirma o envio ao adotante sem aguardar a rede, para não atrasar a abertura do WhatsApp.
+      unawaited(_notificationService.notifyAdoptionRequested(
+        ngoOwnerId: ngo.ownerId,
+        ngoId: ngo.id,
+        adopterName: adopterName,
+        animal: widget.animal,
+      ));
+      unawaited(_notificationService.notifyAdoptionRequestSent(
+        adopterId: user.uid,
+        ngoName: ngo.name,
+        animal: widget.animal,
+      ));
       final adopterEmail = userModel.email.isNotEmpty ? userModel.email : (user.email ?? '');
       final adopterPhone = userModel.phone ?? '';
 
@@ -145,10 +214,15 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
 
       final launched = await launchWhatsApp(ngo.phone, message);
 
-      if (!launched && mounted) {
+      if (launched) {
+        // A confirmação será exibida quando o adotante voltar do WhatsApp para o aplicativo.
+        _awaitingWhatsAppReturn = true;
+      } else if (mounted) {
         messenger.showSnackBar(
           const SnackBar(content: Text('Não foi possível abrir o aplicativo do WhatsApp.')),
         );
+        // A solicitação já foi registrada, então a confirmação é exibida imediatamente.
+        _showRequestSentDialog();
       }
     } catch (e) {
       if (mounted) {
