@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/animal_model.dart';
 import '../models/adoption_request_model.dart';
 import '../models/enums/adoption_status.dart';
+import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
 import '../services/adoption_service.dart';
