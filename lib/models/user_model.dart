@@ -46,6 +46,9 @@ class UserModel {
   // Identifica se o status da conta do usuário está ativo e liberado.
   bool get isActive => status == UserStatus.active.name;
 
+  // Identifica se a conta do usuário ainda precisa preencher os dados complementares obrigatórios.
+  bool get isPendingSetup => status == UserStatus.pendingSetup.name;
+
   // Identifica se a conta do usuário está sob análise da administração.
   bool get isUnderReview => status == UserStatus.underReview.name;
 

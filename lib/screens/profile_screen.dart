@@ -150,10 +150,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Abre o formulário de cadastro da instituição e recarrega o perfil ao retornar.
+  Future<void> _openNgoForm() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const NgoFormScreen(),
+      ),
+    );
+
+    if (mounted) {
+      setState(() {
+        _loadProfile();
+      });
+    }
+  }
+
   // Constrói o painel de atalhos e informações institucionais da ONG.
   Widget _buildNgoPanel(BuildContext context, UserModel userModel) {
     // Exibe apenas o aviso de situação enquanto a instituição não estiver liberada.
     if (!userModel.isActive || userModel.ngoId == null) {
+      // Permite que o representante conclua o envio dos dados caso tenha saído do cadastro antes de finalizar.
+      if (userModel.isPendingSetup) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24.0),
+          child: InfoBanner(
+            type: InfoBannerType.warning,
+            icon: Icons.assignment_outlined,
+            title: 'Complete o cadastro da instituição',
+            message: 'Envie os dados da sua ONG para análise e comece a publicar animais para adoção.',
+            onTap: _openNgoForm,
+          ),
+        );
+      }
+
       return Padding(
         padding: const EdgeInsets.only(bottom: 24.0),
         child: userModel.isUnderReview
