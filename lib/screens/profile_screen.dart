@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/secondary_button.dart';
 import '../widgets/user_card.dart';
 import 'ngo_management_screen.dart';
 import 'user_management_screen.dart';
@@ -93,20 +94,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Constrói o botão de acesso à edição dos dados do perfil.
   Widget _buildEditProfileButton(UserModel userModel) {
-    return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.green.shade700,
-        side: BorderSide(color: Colors.green.shade300),
-        padding: const EdgeInsets.symmetric(vertical: 14.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-      ),
+    return SecondaryButton(
+      text: 'Editar Perfil',
       icon: const Icon(Icons.edit),
-      label: const Text(
-        'Editar Perfil',
-        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-      ),
       onPressed: () => _openProfileForm(userModel),
     );
   }

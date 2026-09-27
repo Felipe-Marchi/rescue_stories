@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/dtos/ngo_request_model.dart';
 import '../models/enums/user_status.dart';
 import '../services/auth_service.dart';
+import '../widgets/approve_reject_buttons.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/ngo_card.dart';
-import '../widgets/primary_button.dart';
 
 // Renderiza a interface de exibição detalhada e avaliação de uma organização.
 class NgoDetailScreen extends StatefulWidget {
@@ -163,33 +163,10 @@ class _NgoDetailScreenState extends State<NgoDetailScreen> {
                 ),
               )
             else
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                      ),
-                      onPressed: () => _processRequest(UserStatus.rejected),
-                      child: const Text(
-                        'Reprovar',
-                        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16.0),
-                  Expanded(
-                    child: PrimaryButton(
-                      text: 'Aprovar',
-                      onPressed: () => _processRequest(UserStatus.active),
-                    ),
-                  ),
-                ],
+              ApproveRejectButtons(
+                rejectLabel: 'Reprovar',
+                onReject: () => _processRequest(UserStatus.rejected),
+                onApprove: () => _processRequest(UserStatus.active),
               ),
           ],
         ),

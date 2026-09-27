@@ -6,6 +6,7 @@ import '../models/enums/adoption_status.dart';
 import '../services/animal_service.dart';
 import '../services/auth_service.dart';
 import '../utils/formatters.dart';
+import 'approve_reject_buttons.dart';
 import 'custom_network_image.dart';
 import 'gender_tag.dart';
 import 'whatsapp_button.dart';
@@ -137,47 +138,9 @@ class AdoptionRequestCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 8.0),
                       ],
-                      Row(
-                        children: [
-                          if (onReject != null)
-                            Expanded(
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                  side: const BorderSide(color: Colors.red),
-                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                ),
-                                onPressed: onReject,
-                                child: const Text(
-                                  'Recusar',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                          const SizedBox(width: 8.0),
-                          if (onApprove != null)
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                ),
-                                onPressed: onApprove,
-                                child: const Text(
-                                  'Aprovar',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                        ],
+                      ApproveRejectButtons(
+                        onApprove: onApprove,
+                        onReject: onReject,
                       ),
                     ] else if (request.status == AdoptionStatus.approved.name) ...[
                       const ContainerStatusBadge(
