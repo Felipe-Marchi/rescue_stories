@@ -63,47 +63,61 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
         _isLoading = true;
       });
 
-      final oldImageUrl = widget.animalToEdit?.imageUrl ?? "";
-      String imageUrl = oldImageUrl;
+      try {
+        final oldImageUrl = widget.animalToEdit?.imageUrl ?? "";
+        String imageUrl = oldImageUrl;
 
-      if (_isImageRemoved) {
-        imageUrl = "";
-      } else if (_selectedImage != null) {
-        String fileName = "animal_" + DateTime.now().millisecondsSinceEpoch.toString() + ".jpg";
-        imageUrl = await _storageService.uploadAnimalImage(_selectedImage!, fileName);
-      }
+        if (_isImageRemoved) {
+          imageUrl = "";
+        } else if (_selectedImage != null) {
+          final fileName = 'animal_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          imageUrl = await _storageService.uploadAnimalImage(_selectedImage!, fileName);
+        }
 
-      final user = _authService.currentUser;
-      String currentNgoId = widget.animalToEdit?.ngoId ?? "";
+        final user = _authService.currentUser;
+        String currentNgoId = widget.animalToEdit?.ngoId ?? "";
 
-      if (currentNgoId.isEmpty && user != null) {
-        final userModel = await _authService.getUserProfile(user.uid);
-        currentNgoId = userModel?.ngoId ?? '';
-      }
+        if (currentNgoId.isEmpty && user != null) {
+          final userModel = await _authService.getUserProfile(user.uid);
+          currentNgoId = userModel?.ngoId ?? '';
+        }
 
-      final animal = AnimalModel(
-        id: widget.animalToEdit?.id ?? '',
-        name: _nameController.text,
-        description: _descriptionController.text,
-        imageUrl: imageUrl,
-        ngoId: currentNgoId,
-        gender: _selectedGender,
-      );
-
-      if (widget.animalToEdit == null) {
-        await _animalService.addAnimal(animal);
-      } else {
-        await _animalService.updateAnimal(animal, oldImageUrl: oldImageUrl);
-      }
-
-      if (mounted) {
-        final message = widget.animalToEdit == null
-            ? 'Animal cadastrado com sucesso!'
-            : 'Dados atualizados com sucesso!';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
+        final animal = AnimalModel(
+          id: widget.animalToEdit?.id ?? '',
+          name: _nameController.text,
+          description: _descriptionController.text,
+          imageUrl: imageUrl,
+          ngoId: currentNgoId,
+          gender: _selectedGender,
         );
-        Navigator.pop(context);
+
+        if (widget.animalToEdit == null) {
+          await _animalService.addAnimal(animal);
+        } else {
+          await _animalService.updateAnimal(animal, oldImageUrl: oldImageUrl);
+        }
+
+        if (mounted) {
+          final message = widget.animalToEdit == null
+              ? 'Animal cadastrado com sucesso!'
+              : 'Dados atualizados com sucesso!';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message)),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao salvar o animal. Tente novamente.')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
