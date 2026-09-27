@@ -35,9 +35,9 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
   }
 
   // Atualiza a situação do pedido de adoção no banco de dados.
-  Future<void> _processStatusChange(String requestId, AdoptionStatus newStatus) async {
+  Future<void> _processStatusChange(AdoptionRequestModel request, AdoptionStatus newStatus) async {
     try {
-      await _adoptionService.updateRequestStatus(requestId, newStatus);
+      await _adoptionService.updateRequestStatus(request, newStatus);
       if (mounted) {
         final message = newStatus == AdoptionStatus.approved
             ? 'Adoção aprovada com sucesso!'
@@ -112,8 +112,8 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
 
         return AdoptionRequestCard(
           request: request,
-          onApprove: () => _processStatusChange(request.id, AdoptionStatus.approved),
-          onReject: () => _processStatusChange(request.id, AdoptionStatus.rejected),
+          onApprove: () => _processStatusChange(request, AdoptionStatus.approved),
+          onReject: () => _processStatusChange(request, AdoptionStatus.rejected),
           onWhatsApp: (animal, adopter) => _launchWhatsApp(animal, adopter),
         );
       },
