@@ -55,7 +55,7 @@ Future<void> openNotificationTarget({
     case NotificationType.ngoSubmitted:
       navigator.push(
         MaterialPageRoute(
-          builder: (context) => NgoManagementScreen(),
+          builder: (context) => const NgoManagementScreen(),
         ),
       );
       break;

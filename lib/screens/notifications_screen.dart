@@ -2,8 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
 import '../services/auth_service.dart';
+import '../services/local_notification_service.dart';
 import '../services/notification_service.dart';
 import '../utils/notification_navigation.dart';
+import '../utils/notification_permission.dart';
+import '../widgets/info_banner.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/notification_tile.dart';
 
@@ -15,20 +18,67 @@ class NotificationsScreen extends StatefulWidget {
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
+class _NotificationsScreenState extends State<NotificationsScreen> with WidgetsBindingObserver {
   final AuthService _authService = AuthService();
   final NotificationService _notificationService = NotificationService();
+  final LocalNotificationService _localNotificationService = LocalNotificationService();
 
   String? _userId;
   Stream<List<NotificationModel>>? _notificationsStream;
 
+  // Indica se as notificações do aparelho estão ativas; começa como verdadeiro para não piscar o aviso.
+  bool _notificationsEnabled = true;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _refreshPermissionStatus();
     _userId = _authService.currentUser?.uid;
     if (_userId != null) {
       _notificationsStream = _notificationService.streamForUser(_userId!);
     }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Confere a permissão de novo quando o usuário volta das configurações do Android.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refreshPermissionStatus();
+  }
+
+  // Atualiza o estado da permissão de notificações do aparelho.
+  Future<void> _refreshPermissionStatus() async {
+    final enabled = await _localNotificationService.areNotificationsEnabled();
+    if (mounted && enabled != _notificationsEnabled) {
+      setState(() {
+        _notificationsEnabled = enabled;
+      });
+    }
+  }
+
+  // Pede a permissão de novo ou abre as configurações do app quando o sistema bloqueia o pedido.
+  Future<void> _handleEnableNotifications() async {
+    await enableNotificationsOnRequest();
+    await _refreshPermissionStatus();
+  }
+
+  // Constrói o aviso exibido enquanto as notificações do aparelho estiverem desativadas.
+  Widget _buildPermissionBanner() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0.0),
+      child: InfoBanner(
+        type: InfoBannerType.warning,
+        icon: Icons.notifications_off_outlined,
+        message: 'Ative as notificações para ser avisado no celular',
+        onTap: _handleEnableNotifications,
+      ),
+    );
   }
 
   // Marca a notificação como lida sem aguardar a rede e abre a tela relacionada ao seu tipo.
@@ -42,6 +92,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       messenger: ScaffoldMessenger.of(context),
       type: notification.notificationType,
       relatedId: notification.relatedId,
+    );
+  }
+
+  // Posiciona o aviso de permissão, quando necessário, acima do conteúdo da central.
+  Widget _buildBody(Widget content) {
+    if (_notificationsEnabled) return content;
+
+    return Column(
+      children: [
+        _buildPermissionBanner(),
+        Expanded(child: content),
+      ],
     );
   }
 
@@ -88,7 +150,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return Scaffold(
         backgroundColor: Colors.grey.shade100,
         appBar: const CustomAppBar(title: 'Notificações'),
-        body: _buildEmptyState(),
+        body: _buildBody(_buildEmptyState()),
       );
     }
 
@@ -138,7 +200,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               const SizedBox(width: 8.0),
             ],
           ),
-          body: body,
+          body: _buildBody(body),
         );
       },
     );

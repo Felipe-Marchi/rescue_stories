@@ -16,6 +16,7 @@ import '../widgets/info_banner.dart';
 import '../widgets/ngo_card.dart';
 import '../widgets/primary_button.dart';
 import '../utils/app_feedback.dart';
+import '../utils/notification_permission.dart';
 import 'login_form_screen.dart';
 import 'profile_form_screen.dart';
 
@@ -60,19 +61,26 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _awaitingWhatsAppReturn) {
       _awaitingWhatsAppReturn = false;
-      _showRequestSentDialog();
+      unawaited(_showRequestSentDialog());
     }
   }
 
-  // Exibe o diálogo de confirmação de envio da solicitação de adoção.
-  void _showRequestSentDialog() {
+  // Exibe o diálogo de confirmação de envio da solicitação de adoção e, em seguida,
+  // pede a permissão de notificações para avisar o adotante sobre a resposta da ONG.
+  Future<void> _showRequestSentDialog() async {
     if (!mounted) return;
 
-    showFeedbackDialog(
+    await showFeedbackDialog(
       context,
       title: 'Solicitação enviada!',
       message: 'A ONG vai analisar seu pedido e entrar em contato com você.',
       type: InfoBannerType.success,
+    );
+
+    if (!mounted) return;
+    await askNotificationPermissionOnce(
+      context,
+      message: 'Quer saber quando a ONG responder? Ative as notificações para ser avisado no celular.',
     );
   }
 
@@ -194,7 +202,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
       } else if (mounted) {
         messenger.showSnackBar(buildAppSnackBar('Não conseguimos abrir o WhatsApp. Verifique se ele está instalado.', type: InfoBannerType.error));
         // A solicitação já foi registrada, então a confirmação é exibida imediatamente.
-        _showRequestSentDialog();
+        unawaited(_showRequestSentDialog());
       }
     } catch (e) {
       if (mounted) {

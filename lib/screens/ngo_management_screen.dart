@@ -1,15 +1,34 @@
 import 'package:flutter/material.dart';
 import '../models/dtos/ngo_request_model.dart';
 import '../services/ngo_service.dart';
+import '../utils/notification_permission.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/ngo_card.dart';
 import 'ngo_detail_screen.dart';
 
 // Renderiza a interface de gerenciamento de ONGs com abas para solicitações pendentes e aprovadas.
-class NgoManagementScreen extends StatelessWidget {
-  NgoManagementScreen({super.key});
+class NgoManagementScreen extends StatefulWidget {
+  const NgoManagementScreen({super.key});
 
+  @override
+  State<NgoManagementScreen> createState() => _NgoManagementScreenState();
+}
+
+class _NgoManagementScreenState extends State<NgoManagementScreen> {
   final NgoService _ngoService = NgoService();
+
+  @override
+  void initState() {
+    super.initState();
+    // Pede a permissão de notificações para avisar o administrador sobre novas instituições.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      askNotificationPermissionOnce(
+        context,
+        message: 'Ative as notificações para saber no celular quando uma nova instituição enviar o cadastro.',
+      );
+    });
+  }
 
   Widget _buildNgoList({
     required BuildContext context,

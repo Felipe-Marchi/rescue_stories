@@ -10,6 +10,7 @@ import '../widgets/adoption_request_card.dart';
 import '../widgets/count_pill.dart';
 import '../widgets/custom_app_bar.dart';
 import '../utils/app_feedback.dart';
+import '../utils/notification_permission.dart';
 import '../widgets/info_banner.dart';
 
 // Renderiza a interface de gerenciamento de solicitações de adoção recebidas por uma ONG.
@@ -35,6 +36,15 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
   void initState() {
     super.initState();
     _requestsStream = _adoptionService.getRequestsByNgo(widget.ngoId);
+
+    // Pede a permissão de notificações para avisar a ONG sobre novas solicitações de adoção.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      askNotificationPermissionOnce(
+        context,
+        message: 'Ative as notificações para saber no celular quando chegar uma nova solicitação de adoção.',
+      );
+    });
   }
 
   // Atualiza a situação do pedido de adoção no banco de dados.

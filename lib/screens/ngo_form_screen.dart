@@ -11,6 +11,7 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import '../utils/app_feedback.dart';
+import '../utils/notification_permission.dart';
 import '../widgets/info_banner.dart';
 
 // Renderiza a interface para o cadastro inicial ou edição dos dados institucionais da ONG.
@@ -145,6 +146,13 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
             message: 'Nossa equipe vai analisar os dados da ${_nameController.text.trim()}. '
                 'Avisaremos você pelo app.',
             type: InfoBannerType.success,
+          );
+
+          // Pede a permissão de notificações para avisar o representante sobre o resultado da análise.
+          if (!mounted) return;
+          await askNotificationPermissionOnce(
+            context,
+            message: 'Ative as notificações para saber no celular quando o cadastro da sua instituição for analisado.',
           );
           if (mounted) Navigator.pop(context);
         } else if (successMessage != null) {
