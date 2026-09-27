@@ -11,12 +11,105 @@ import 'animal_management_screen.dart';
 import 'animal_form_screen.dart';
 import 'ngo_form_screen.dart';
 import 'adoption_management_screen.dart';
+import 'profile_form_screen.dart';
 
 // Renderiza a interface de perfil do usuário autenticado com opções de gerenciamento de conta.
-class ProfileScreen extends StatelessWidget {
-  ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+// Gerencia o carregamento do perfil e o recarrega após a edição dos dados do usuário.
+class _ProfileScreenState extends State<ProfileScreen> {
   final _authService = AuthService();
+
+  Future<UserModel?>? _profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  // Dispara a leitura do perfil do usuário autenticado no banco de dados.
+  void _loadProfile() {
+    final user = _authService.currentUser;
+    _profileFuture = user != null ? _authService.getUserProfile(user.uid) : null;
+  }
+
+  // Abre a edição do perfil e recarrega os dados caso as alterações tenham sido salvas.
+  Future<void> _openProfileForm(UserModel userModel) async {
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileFormScreen(user: userModel),
+      ),
+    );
+
+    if (saved == true && mounted) {
+      setState(() {
+        _loadProfile();
+      });
+    }
+  }
+
+  // Constrói o aviso em destaque para usuários que ainda não cadastraram telefone.
+  Widget _buildPhoneWarning(UserModel userModel) {
+    return Material(
+      color: Colors.amber.shade50,
+      borderRadius: BorderRadius.circular(12.0),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12.0),
+        onTap: () => _openProfileForm(userModel),
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12.0),
+            border: Border.all(color: Colors.amber.shade300),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.phone_outlined, color: Colors.amber.shade800, size: 28.0),
+              const SizedBox(width: 12.0),
+              const Expanded(
+                child: Text(
+                  'Adicione seu telefone para que a ONG possa entrar em contato.',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              Icon(Icons.chevron_right, color: Colors.amber.shade800),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Constrói o botão de acesso à edição dos dados do perfil.
+  Widget _buildEditProfileButton(UserModel userModel) {
+    return OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.green.shade700,
+        side: BorderSide(color: Colors.green.shade300),
+        padding: const EdgeInsets.symmetric(vertical: 14.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+      ),
+      icon: const Icon(Icons.edit),
+      label: const Text(
+        'Editar Perfil',
+        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+      ),
+      onPressed: () => _openProfileForm(userModel),
+    );
+  }
 
   // Executa o encerramento de sessão do usuário logado.
   Future<void> _handleSignOut(BuildContext context) async {
@@ -236,8 +329,6 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = _authService.currentUser;
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
@@ -248,9 +339,9 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (user != null)
+            if (_profileFuture != null)
               FutureBuilder<UserModel?>(
-                future: _authService.getUserProfile(user.uid),
+                future: _profileFuture,
                 builder: (context, snapshot) {
                   final userModel = snapshot.data;
 
@@ -263,6 +354,15 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       // Exibe o cartão padronizado com os dados do usuário.
                       UserCard(user: userModel),
+                      const SizedBox(height: 16.0),
+
+                      // Exibe o aviso em destaque caso o usuário ainda não tenha telefone cadastrado.
+                      if (!userModel.hasPhone) ...[
+                        _buildPhoneWarning(userModel),
+                        const SizedBox(height: 16.0),
+                      ],
+
+                      _buildEditProfileButton(userModel),
                       const SizedBox(height: 24.0),
 
                       // Exibe o painel administrativo caso o usuário seja Admin.

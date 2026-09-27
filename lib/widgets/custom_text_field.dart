@@ -9,6 +9,7 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final bool isRequired;
   final bool obscureText;
+  final bool readOnly;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
 
@@ -21,6 +22,7 @@ class CustomTextField extends StatelessWidget {
     this.validator,
     this.isRequired = false,
     this.obscureText = false,
+    this.readOnly = false,
     this.keyboardType,
     this.inputFormatters,
   });
@@ -31,13 +33,15 @@ class CustomTextField extends StatelessWidget {
       controller: controller,
       maxLines: maxLines,
       obscureText: obscureText,
+      readOnly: readOnly,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       decoration: InputDecoration(
         labelText: label,
         alignLabelWithHint: true,
         filled: true,
-        fillColor: Colors.grey.shade50,
+        // Usa um fundo mais escuro para indicar que o campo não pode ser editado.
+        fillColor: readOnly ? Colors.grey.shade100 : Colors.grey.shade50,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
           borderSide: BorderSide(color: Colors.grey.shade300),
