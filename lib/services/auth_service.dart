@@ -112,6 +112,14 @@ class AuthService {
     }).timeout(networkTimeout);
   }
 
+  // Atualiza o nome e o telefone de contato no perfil do usuário.
+  Future<void> updateUserProfile(String userId, String name, String phone) async {
+    await _firestore.collection('users').doc(userId).update({
+      'name': name,
+      'phone': phone,
+    }).timeout(networkTimeout);
+  }
+
   // Recupera as informações do perfil do usuário como objeto UserModel.
   Future<UserModel?> getUserProfile(String userId) async {
     final doc = await _firestore.collection('users').doc(userId).get();

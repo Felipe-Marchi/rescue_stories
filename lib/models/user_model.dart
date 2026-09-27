@@ -9,6 +9,7 @@ class UserModel {
   final String role;
   final String status;
   final String? ngoId;
+  final String? phone;
 
   UserModel({
     required this.id,
@@ -17,6 +18,7 @@ class UserModel {
     required this.role,
     required this.status,
     this.ngoId,
+    this.phone,
   });
 
   // Converte dados brutos do mapa de dados em uma instância da classe UserModel.
@@ -28,6 +30,7 @@ class UserModel {
       role: data['role'] ?? UserRole.adopter.name,
       status: data['status'] ?? UserStatus.active.name,
       ngoId: data['ngoId'] as String?,
+      phone: data['phone'] as String?,
     );
   }
 
@@ -45,4 +48,7 @@ class UserModel {
 
   // Identifica se a conta do usuário está sob análise da administração.
   bool get isUnderReview => status == UserStatus.underReview.name;
+
+  // Identifica se o usuário possui telefone de contato cadastrado.
+  bool get hasPhone => phone != null && phone!.trim().isNotEmpty;
 }
