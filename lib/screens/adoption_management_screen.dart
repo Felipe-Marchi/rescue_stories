@@ -7,6 +7,7 @@ import '../services/adoption_service.dart';
 import '../services/ngo_service.dart';
 import '../utils/whatsapp.dart';
 import '../widgets/adoption_request_card.dart';
+import '../widgets/count_pill.dart';
 import '../widgets/custom_app_bar.dart';
 
 // Renderiza a interface de gerenciamento de solicitações de adoção recebidas por uma ONG.
@@ -169,13 +170,19 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
                 unselectedLabelColor: Colors.grey,
                 indicatorColor: Colors.green,
                 tabs: [
+                  // Exibe a quantidade de pendentes com a mesma pílula usada no painel da ONG.
                   Tab(
-                    icon: Badge(
-                      isLabelVisible: pendingCount > 0,
-                      label: Text('$pendingCount'),
-                      child: const Icon(Icons.pending_actions),
+                    icon: const Icon(Icons.pending_actions),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Pendentes'),
+                        if (pendingCount > 0) ...[
+                          const SizedBox(width: 6.0),
+                          CountPill(count: pendingCount),
+                        ],
+                      ],
                     ),
-                    text: 'Pendentes',
                   ),
                   const Tab(
                     icon: Icon(Icons.check_circle_outline),

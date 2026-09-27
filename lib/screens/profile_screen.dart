@@ -3,6 +3,7 @@ import '../models/user_model.dart';
 import '../services/adoption_service.dart';
 import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
+import '../widgets/count_pill.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/info_banner.dart';
 import '../widgets/primary_button.dart';
@@ -181,6 +182,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return _pendingCountStreamCache!;
   }
 
+  // Abre a tela de gerenciamento das solicitações de adoção recebidas pela ONG.
+  void _openAdoptionManagement(String ngoId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AdoptionManagementScreen(ngoId: ngoId),
+      ),
+    );
+  }
+
   // Constrói o painel de atalhos e informações institucionais da ONG.
   Widget _buildNgoPanel(BuildContext context, UserModel userModel) {
     // Exibe apenas o aviso de situação enquanto a instituição não estiver liberada.
@@ -249,6 +260,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 12.0),
 
+          // Destaca as solicitações pendentes no topo do painel, com atalho para respondê-las.
+          StreamBuilder<int>(
+            stream: pendingCountStream,
+            builder: (context, snapshot) {
+              final count = snapshot.data ?? 0;
+              if (count == 0) return const SizedBox.shrink();
+
+              final title = count == 1
+                  ? '1 solicitação aguardando resposta'
+                  : '$count solicitações aguardando resposta';
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: InfoBanner(
+                  type: InfoBannerType.warning,
+                  icon: Icons.pending_actions,
+                  title: title,
+                  message: 'Toque para ver os interessados e responder.',
+                  onTap: () => _openAdoptionManagement(userModel.ngoId!),
+                ),
+              );
+            },
+          ),
+
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Solicitações de Adoção'),
@@ -261,27 +296,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (count > 0)
-                      Badge(
-                        label: Text('$count'),
-                        largeSize: 22.0,
-                        padding: const EdgeInsets.symmetric(horizontal: 7.0),
-                      ),
+                    if (count > 0) ...[
+                      CountPill(count: count),
+                      const SizedBox(width: 4.0),
+                    ],
                     const Icon(Icons.chevron_right),
                   ],
                 );
               },
             ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AdoptionManagementScreen(
-                    ngoId: userModel.ngoId!,
-                  ),
-                ),
-              );
-            },
+            onTap: () => _openAdoptionManagement(userModel.ngoId!),
           ),
           const Divider(),
           ListTile(
