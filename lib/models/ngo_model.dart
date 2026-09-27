@@ -18,4 +18,29 @@ class NgoModel {
     required this.address,
     required this.ownerId,
   });
+
+  // Converte a instância da classe em um mapa de dados para gravação no Firestore.
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'document': document,
+      'email': email,
+      'phone': phone,
+      'address': address,
+      'ownerId': ownerId,
+    };
+  }
+
+  // Converte o mapa de dados recebido do Firestore em uma instância da classe NgoModel.
+  factory NgoModel.fromMap(String id, Map<String, dynamic> data) {
+    return NgoModel(
+      id: id,
+      name: data['name'] ?? '',
+      document: data['document'] ?? '',
+      email: data['email'] ?? '',
+      phone: data['phone'] ?? '',
+      address: data['address'] ?? '',
+      ownerId: data['ownerId'] ?? '',
+    );
+  }
 }

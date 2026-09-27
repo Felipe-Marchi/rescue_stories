@@ -15,27 +15,15 @@ class NgoService {
 
   // Registra as informações institucionais de uma organização.
   Future<String> addNgo(NgoModel ngo) async {
-    final docRef = await _ngosCollection.add({
-      'name': ngo.name,
-      'document': ngo.document,
-      'email': ngo.email,
-      'phone': ngo.phone,
-      'address': ngo.address,
-      'ownerId': ngo.ownerId,
-    });
+    final docRef = await _ngosCollection.add(ngo.toMap());
 
     return docRef.id;
   }
 
   // Atualiza as informações institucionais de uma organização no banco de dados e no cache.
   Future<void> updateNgo(NgoModel ngo) async {
-    await _ngosCollection.doc(ngo.id).update({
-      'name': ngo.name,
-      'document': ngo.document,
-      'email': ngo.email,
-      'phone': ngo.phone,
-      'address': ngo.address,
-    });
+    // Preserva o responsável original da organização, que não é alterado na edição.
+    await _ngosCollection.doc(ngo.id).update(ngo.toMap()..remove('ownerId'));
     _ngoCache[ngo.id] = ngo;
   }
 
@@ -52,15 +40,7 @@ class NgoService {
       if (!doc.exists) return null;
 
       final data = doc.data() as Map<String, dynamic>;
-      final ngo = NgoModel(
-        id: doc.id,
-        name: data['name'] ?? '',
-        document: data['document'] ?? '',
-        email: data['email'] ?? '',
-        phone: data['phone'] ?? '',
-        address: data['address'] ?? '',
-        ownerId: data['ownerId'] ?? '',
-      );
+      final ngo = NgoModel.fromMap(doc.id, data);
 
       _ngoCache[ngoId] = ngo;
       return ngo;
@@ -132,15 +112,7 @@ class NgoService {
     return _ngosCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        final ngo = NgoModel(
-          id: doc.id,
-          name: data['name'] ?? '',
-          document: data['document'] ?? '',
-          email: data['email'] ?? '',
-          phone: data['phone'] ?? '',
-          address: data['address'] ?? '',
-          ownerId: data['ownerId'] ?? '',
-        );
+        final ngo = NgoModel.fromMap(doc.id, data);
 
         _ngoCache[doc.id] = ngo;
         return ngo;

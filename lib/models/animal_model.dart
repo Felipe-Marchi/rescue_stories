@@ -16,4 +16,27 @@ class AnimalModel {
     required this.ngoId,
     required this.gender,
   });
+
+  // Converte a instância da classe em um mapa de dados para gravação no Firestore.
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'description': description,
+      'imageUrl': imageUrl,
+      'ngoId': ngoId,
+      'gender': gender,
+    };
+  }
+
+  // Converte o mapa de dados recebido do Firestore em uma instância da classe AnimalModel.
+  factory AnimalModel.fromMap(String id, Map<String, dynamic> data) {
+    return AnimalModel(
+      id: id,
+      name: data['name'] ?? '',
+      description: data['description'] ?? '',
+      imageUrl: data['imageUrl'] ?? '',
+      ngoId: data['ngoId'] ?? '',
+      gender: data['gender'] ?? 'Macho',
+    );
+  }
 }

@@ -24,14 +24,7 @@ class AnimalService {
       if (!doc.exists || doc.data() == null) return null;
 
       final data = doc.data() as Map<String, dynamic>;
-      final animal = AnimalModel(
-        id: doc.id,
-        name: data['name'] ?? '',
-        description: data['description'] ?? '',
-        imageUrl: data['imageUrl'] ?? '',
-        ngoId: data['ngoId'] ?? '',
-        gender: data['gender'] ?? 'Macho',
-      );
+      final animal = AnimalModel.fromMap(doc.id, data);
 
       _animalCache[animalId] = animal;
       return animal;
@@ -45,14 +38,7 @@ class AnimalService {
     return _animalsCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        return AnimalModel(
-          id: doc.id,
-          name: data['name'] ?? '',
-          description: data['description'] ?? '',
-          imageUrl: data['imageUrl'] ?? '',
-          ngoId: data['ngoId'] ?? '',
-          gender: data['gender'] ?? 'Macho',
-        );
+        return AnimalModel.fromMap(doc.id, data);
       }).toList();
     });
   }
@@ -65,27 +51,14 @@ class AnimalService {
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        return AnimalModel(
-          id: doc.id,
-          name: data['name'] ?? '',
-          description: data['description'] ?? '',
-          imageUrl: data['imageUrl'] ?? '',
-          ngoId: data['ngoId'] ?? '',
-          gender: data['gender'] ?? 'Macho',
-        );
+        return AnimalModel.fromMap(doc.id, data);
       }).toList();
     });
   }
 
   // Registra as informações de um animal na coleção do banco de dados.
   Future<void> addAnimal(AnimalModel animal) async {
-    await _animalsCollection.add({
-      'name': animal.name,
-      'description': animal.description,
-      'imageUrl': animal.imageUrl,
-      'ngoId': animal.ngoId,
-      'gender': animal.gender,
-    });
+    await _animalsCollection.add(animal.toMap());
   }
 
   // Atualiza as informações de um animal existente no banco de dados e atualiza o cache em memória.
@@ -94,12 +67,8 @@ class AnimalService {
       await _storageService.deleteImageByUrl(oldImageUrl);
     }
 
-    await _animalsCollection.doc(animal.id).update({
-      'name': animal.name,
-      'description': animal.description,
-      'imageUrl': animal.imageUrl,
-      'gender': animal.gender,
-    });
+    // Preserva o vínculo original com a ONG, que não é alterado na edição.
+    await _animalsCollection.doc(animal.id).update(animal.toMap()..remove('ngoId'));
 
     _animalCache[animal.id] = animal;
   }
