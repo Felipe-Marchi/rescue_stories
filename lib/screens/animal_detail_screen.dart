@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../models/animal_model.dart';
 import '../models/adoption_request_model.dart';
 import '../models/enums/adoption_status.dart';
@@ -7,6 +6,7 @@ import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
 import '../services/adoption_service.dart';
+import '../utils/whatsapp.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
 import '../widgets/gender_tag.dart';
@@ -33,49 +33,6 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
   final AdoptionService _adoptionService = AdoptionService();
 
   bool _isLoading = false;
-
-  // Formata o número de telefone e abre o aplicativo do WhatsApp com a mensagem codificada.
-  Future<void> _launchWhatsApp({
-    required String rawPhone,
-    required String animalName,
-    required String adopterName,
-    required String adopterEmail,
-    required ScaffoldMessengerState messenger,
-  }) async {
-    String phoneDigits = rawPhone.replaceAll(RegExp(r'\D'), '');
-    if (!phoneDigits.startsWith('55') &&
-        (phoneDigits.length == 10 || phoneDigits.length == 11)) {
-      phoneDigits = '55$phoneDigits';
-    }
-
-    final message =
-        '🐾 *Histórias de Resgate*\n\n'
-        'Olá! Tenho interesse em adotar o pet *$animalName* que vi no aplicativo.\n\n'
-        '👤 *Adotante:* $adopterName ($adopterEmail)\n\n'
-        'Gostaria de saber os próximos passos!';
-
-    final encodedMessage = Uri.encodeComponent(message);
-    final whatsappUri = Uri.parse('https://wa.me/$phoneDigits?text=$encodedMessage');
-
-    try {
-      final launched = await launchUrl(
-        whatsappUri,
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!launched && mounted) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Não foi possível abrir o aplicativo do WhatsApp.')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Verifique se o aplicativo do WhatsApp está instalado.')),
-        );
-      }
-    }
-  }
 
   // Gerencia o registro da intenção de adoção e a abertura do WhatsApp da ONG.
   Future<void> _handleAdoption(BuildContext context) async {
@@ -136,13 +93,19 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
       final adopterEmail = userModel?.email ?? user.email ?? '';
 
       // Formata a mensagem e redireciona para a conversa com a ONG no WhatsApp.
-      await _launchWhatsApp(
-        rawPhone: ngo.phone,
-        animalName: widget.animal.name,
-        adopterName: adopterName,
-        adopterEmail: adopterEmail,
-        messenger: messenger,
-      );
+      final message =
+          '🐾 *Histórias de Resgate*\n\n'
+          'Olá! Tenho interesse em adotar o pet *${widget.animal.name}* que vi no aplicativo.\n\n'
+          '👤 *Adotante:* $adopterName ($adopterEmail)\n\n'
+          'Gostaria de saber os próximos passos!';
+
+      final launched = await launchWhatsApp(ngo.phone, message);
+
+      if (!launched && mounted) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Não foi possível abrir o aplicativo do WhatsApp.')),
+        );
+      }
     } catch (e) {
       if (mounted) {
         messenger.showSnackBar(

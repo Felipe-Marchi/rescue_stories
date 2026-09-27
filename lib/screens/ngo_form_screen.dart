@@ -174,7 +174,7 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
                   CnpjInputFormatter(),
                 ],
                 validator: (value) {
-                  final digits = value?.replaceAll(RegExp(r'\D'), '') ?? '';
+                  final digits = onlyDigits(value ?? '');
                   if (digits.length != 14) {
                     return 'CNPJ incompleto (informe os 14 dígitos)';
                   }
@@ -207,7 +207,7 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
                   PhoneInputFormatter(),
                 ],
                 validator: (value) {
-                  final digits = value?.replaceAll(RegExp(r'\D'), '') ?? '';
+                  final digits = onlyDigits(value ?? '');
                   if (digits.length < 10) {
                     return 'Informe um telefone válido com DDD';
                   }

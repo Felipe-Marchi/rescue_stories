@@ -1,5 +1,8 @@
 import 'package:flutter/services.dart';
 
+// Remove todos os caracteres não numéricos do texto informado.
+String onlyDigits(String value) => value.replaceAll(RegExp(r'\D'), '');
+
 // Formata uma instância de DateTime no formato textual padrão dd/mm/yyyy.
 String formatDate(DateTime date) {
   final day = date.day.toString().padLeft(2, '0');
@@ -14,7 +17,7 @@ class CnpjInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final digitsOnly = onlyDigits(newValue.text);
     final limited = digitsOnly.length > 14 ? digitsOnly.substring(0, 14) : digitsOnly;
 
     final buffer = StringBuffer();
@@ -40,7 +43,7 @@ class PhoneInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final digitsOnly = onlyDigits(newValue.text);
     final limited = digitsOnly.length > 11 ? digitsOnly.substring(0, 11) : digitsOnly;
 
     final buffer = StringBuffer();

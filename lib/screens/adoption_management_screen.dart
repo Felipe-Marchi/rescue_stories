@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../models/adoption_request_model.dart';
 import '../models/enums/adoption_status.dart';
 import '../services/adoption_service.dart';
+import '../utils/whatsapp.dart';
 import '../widgets/adoption_request_card.dart';
 import '../widgets/custom_app_bar.dart';
 
@@ -49,28 +49,24 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
     required String animalName,
     required String adopterName,
   }) async {
-    if (rawPhone.isEmpty) return;
+    final messenger = ScaffoldMessenger.of(context);
 
-    String phoneDigits = rawPhone.replaceAll(RegExp(r'\D'), '');
-    if (!phoneDigits.startsWith('55') &&
-        (phoneDigits.length == 10 || phoneDigits.length == 11)) {
-      phoneDigits = '55$phoneDigits';
+    if (rawPhone.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Este adotante ainda não possui telefone cadastrado.')),
+      );
+      return;
     }
 
     final message =
         'Olá $adopterName! Sou da ONG responsável pelo pet $animalName no Histórias de Resgate. Vamos conversar sobre a sua solicitação de adoção!';
 
-    final encodedMessage = Uri.encodeComponent(message);
-    final whatsappUri = Uri.parse('https://wa.me/$phoneDigits?text=$encodedMessage');
+    final launched = await launchWhatsApp(rawPhone, message);
 
-    try {
-      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Não foi possível abrir o WhatsApp.')),
-        );
-      }
+    if (!launched && mounted) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Não foi possível abrir o WhatsApp.')),
+      );
     }
   }
 
