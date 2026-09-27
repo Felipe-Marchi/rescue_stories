@@ -94,16 +94,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  // Constrói a superfície verde dos painéis usando Material, para que o fundo colorido
+  // e o efeito de toque dos itens de menu (ListTile) fiquem visíveis juntos.
+  Widget _buildPanelSurface({required Widget child}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24.0),
+      child: Material(
+        color: Colors.green.shade50,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          side: BorderSide(color: Colors.green.shade200),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: child,
+        ),
+      ),
+    );
+  }
+
   // Constrói o painel de atalhos administrativos.
   Widget _buildAdminPanel(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24.0),
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.green.shade50,
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(color: Colors.green.shade200),
-      ),
+    return _buildPanelSurface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -228,14 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final pendingCountStream = _pendingCountFor(userModel.ngoId!);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24.0),
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.green.shade50,
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(color: Colors.green.shade200),
-      ),
+    return _buildPanelSurface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
