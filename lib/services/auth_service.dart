@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import '../models/enums/user_status.dart';
 import '../models/enums/user_role.dart';
+import '../utils/network.dart';
 
 // Gerencia a comunicação de autenticação e controle de sessão de usuários no Firebase.
 class AuthService {
@@ -108,7 +109,7 @@ class AuthService {
     await _firestore.collection('users').doc(userId).update({
       'ngoId': ngoId,
       'status': UserStatus.underReview.name,
-    });
+    }).timeout(networkTimeout);
   }
 
   // Recupera as informações do perfil do usuário como objeto UserModel.

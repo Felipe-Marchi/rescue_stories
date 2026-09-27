@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/ngo_model.dart';
 import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
 import '../utils/formatters.dart';
+import '../utils/network.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
@@ -34,6 +36,9 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
   final _ngoService = NgoService();
 
   bool _isLoading = false;
+
+  // Identificador gerado na primeira tentativa de cadastro e reutilizado nas seguintes.
+  String? _pendingNgoId;
 
   @override
   void initState() {
@@ -66,51 +71,61 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
 
       try {
         final user = _authService.currentUser;
+        String? successMessage;
 
-        if (widget.ngoToEdit != null) {
-          final updatedNgo = NgoModel(
-            id: widget.ngoToEdit!.id,
-            name: _nameController.text.trim(),
-            document: _documentController.text.trim(),
-            email: _emailController.text.trim(),
-            phone: _phoneController.text.trim(),
-            address: _addressController.text.trim(),
-            ownerId: widget.ngoToEdit!.ownerId,
-          );
-
-          await _ngoService.updateNgo(updatedNgo);
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Dados da instituição atualizados com sucesso!')),
+        // Grava os dados no Firestore. Se expirar, as escritas permanecem na fila offline e serão sincronizadas depois.
+        try {
+          if (widget.ngoToEdit != null) {
+            final updatedNgo = NgoModel(
+              id: widget.ngoToEdit!.id,
+              name: _nameController.text.trim(),
+              document: _documentController.text.trim(),
+              email: _emailController.text.trim(),
+              phone: _phoneController.text.trim(),
+              address: _addressController.text.trim(),
+              ownerId: widget.ngoToEdit!.ownerId,
             );
-            Navigator.pop(context);
-          }
-        } else if (user != null) {
-          final newNgo = NgoModel(
-            id: '',
-            name: _nameController.text.trim(),
-            document: _documentController.text.trim(),
-            email: _emailController.text.trim(),
-            phone: _phoneController.text.trim(),
-            address: _addressController.text.trim(),
-            ownerId: user.uid,
-          );
 
-          final ngoId = await _ngoService.addNgo(newNgo);
-          await _authService.linkUserToNgo(user.uid, ngoId);
+            await _ngoService.updateNgo(updatedNgo);
+            successMessage = 'Dados da instituição atualizados com sucesso!';
+          } else if (user != null) {
+            // Gera o identificador uma única vez para que novas tentativas não dupliquem a instituição.
+            final ngoId = _pendingNgoId ??= _ngoService.newNgoId();
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Dados enviados com sucesso! Aguarde a aprovação.')),
+            final newNgo = NgoModel(
+              id: ngoId,
+              name: _nameController.text.trim(),
+              document: _documentController.text.trim(),
+              email: _emailController.text.trim(),
+              phone: _phoneController.text.trim(),
+              address: _addressController.text.trim(),
+              ownerId: user.uid,
             );
-            Navigator.pop(context);
+
+            // Dispara as duas escritas juntas para que ambas entrem na fila offline mesmo sem conexão.
+            await Future.wait<void>([
+              _ngoService.addNgo(newNgo),
+              _authService.linkUserToNgo(user.uid, ngoId),
+            ]);
+            successMessage = 'Dados enviados com sucesso! Aguarde a aprovação.';
           }
+        } on TimeoutException {
+          successMessage = 'Sem conexão. Os dados da ONG foram salvos no aparelho e serão enviados automaticamente quando a internet voltar.';
+        }
+
+        if (mounted && successMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(successMessage)),
+          );
+          Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
+          final message = isConnectionError(e)
+              ? noConnectionMessage
+              : 'Falha ao processar os dados. Tente novamente.';
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Falha ao processar os dados. Tente novamente.')),
+            SnackBar(content: Text(message)),
           );
         }
       } finally {

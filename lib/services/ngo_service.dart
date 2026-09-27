@@ -4,6 +4,7 @@ import '../models/dtos/ngo_request_model.dart';
 import '../models/user_model.dart';
 import '../models/enums/user_role.dart';
 import '../models/enums/user_status.dart';
+import '../utils/network.dart';
 
 // Gerencia a comunicação entre o aplicativo e o banco de dados Firestore para a entidade organização (ONG).
 class NgoService {
@@ -13,17 +14,24 @@ class NgoService {
   // Cache estático em memória para armazenar os objetos NgoModel completos e evitar requisições repetidas ao Firestore.
   static final Map<String, NgoModel> _ngoCache = {};
 
-  // Registra as informações institucionais de uma organização.
-  Future<String> addNgo(NgoModel ngo) async {
-    final docRef = await _ngosCollection.add(ngo.toMap());
+  // Gera localmente um novo identificador de documento para uma organização, sem acessar a rede.
+  String newNgoId() => _ngosCollection.doc().id;
 
-    return docRef.id;
+  // Registra as informações institucionais de uma organização usando o identificador já gerado,
+  // de modo que novas tentativas sobrescrevam o mesmo documento em vez de duplicá-lo.
+  Future<String> addNgo(NgoModel ngo) async {
+    await _ngosCollection.doc(ngo.id).set(ngo.toMap()).timeout(networkTimeout);
+
+    return ngo.id;
   }
 
   // Atualiza as informações institucionais de uma organização no banco de dados e no cache.
   Future<void> updateNgo(NgoModel ngo) async {
     // Preserva o responsável original da organização, que não é alterado na edição.
-    await _ngosCollection.doc(ngo.id).update(ngo.toMap()..remove('ownerId'));
+    await _ngosCollection
+        .doc(ngo.id)
+        .update(ngo.toMap()..remove('ownerId'))
+        .timeout(networkTimeout);
     _ngoCache[ngo.id] = ngo;
   }
 

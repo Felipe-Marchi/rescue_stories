@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/animal_model.dart';
+import '../utils/network.dart';
 import 'storage_service.dart';
 
 // Gerencia a comunicação entre o aplicativo e o banco de dados Firestore para a entidade animal.
@@ -56,21 +57,29 @@ class AnimalService {
     });
   }
 
-  // Registra as informações de um animal na coleção do banco de dados.
+  // Gera localmente um novo identificador de documento para um animal, sem acessar a rede.
+  String newAnimalId() => _animalsCollection.doc().id;
+
+  // Registra as informações de um animal na coleção usando o identificador já gerado,
+  // de modo que novas tentativas sobrescrevam o mesmo documento em vez de duplicá-lo.
   Future<void> addAnimal(AnimalModel animal) async {
-    await _animalsCollection.add(animal.toMap());
+    await _animalsCollection.doc(animal.id).set(animal.toMap()).timeout(networkTimeout);
   }
 
   // Atualiza as informações de um animal existente no banco de dados e atualiza o cache em memória.
   Future<void> updateAnimal(AnimalModel animal, {String? oldImageUrl}) async {
+    // Preserva o vínculo original com a ONG, que não é alterado na edição.
+    await _animalsCollection
+        .doc(animal.id)
+        .update(animal.toMap()..remove('ngoId'))
+        .timeout(networkTimeout);
+
+    _animalCache[animal.id] = animal;
+
+    // Remove a imagem antiga somente após a gravação, para não deixar o registro apontando para um arquivo excluído.
     if (oldImageUrl != null && oldImageUrl.isNotEmpty && oldImageUrl != animal.imageUrl) {
       await _storageService.deleteImageByUrl(oldImageUrl);
     }
-
-    // Preserva o vínculo original com a ONG, que não é alterado na edição.
-    await _animalsCollection.doc(animal.id).update(animal.toMap()..remove('ngoId'));
-
-    _animalCache[animal.id] = animal;
   }
 
   // Exclui o registro do animal do banco de dados, remove sua foto do Storage e limpa o cache.

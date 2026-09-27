@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
 import '../services/animal_service.dart';
 import '../services/storage_service.dart';
 import '../services/auth_service.dart';
+import '../utils/network.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/gender_selector.dart';
@@ -39,6 +41,12 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
   String _selectedGender = 'Macho';
   bool _isLoading = false;
 
+  // Identificador gerado na primeira tentativa de cadastro e reutilizado nas seguintes.
+  String? _pendingAnimalId;
+
+  // URL da foto já enviada ao Storage, reutilizada caso a gravação no banco precise ser repetida.
+  String? _uploadedImageUrl;
+
   @override
   void initState() {
     super.initState();
@@ -63,27 +71,37 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
         _isLoading = true;
       });
 
+      final isEditing = widget.animalToEdit != null;
+
       try {
+        // Etapa 1: operações de rede que ainda não gravam nada no banco (upload da foto e leitura do perfil).
         final oldImageUrl = widget.animalToEdit?.imageUrl ?? "";
         String imageUrl = oldImageUrl;
 
         if (_isImageRemoved) {
           imageUrl = "";
         } else if (_selectedImage != null) {
-          final fileName = 'animal_${DateTime.now().millisecondsSinceEpoch}.jpg';
-          imageUrl = await _storageService.uploadAnimalImage(_selectedImage!, fileName);
+          // Reaproveita a foto já enviada em uma tentativa anterior que falhou depois do upload.
+          if (_uploadedImageUrl == null) {
+            final fileName = 'animal_${DateTime.now().millisecondsSinceEpoch}.jpg';
+            _uploadedImageUrl = await _storageService.uploadAnimalImage(_selectedImage!, fileName);
+          }
+          imageUrl = _uploadedImageUrl!;
         }
 
         final user = _authService.currentUser;
         String currentNgoId = widget.animalToEdit?.ngoId ?? "";
 
         if (currentNgoId.isEmpty && user != null) {
-          final userModel = await _authService.getUserProfile(user.uid);
+          final userModel = await _authService.getUserProfile(user.uid).timeout(networkTimeout);
           currentNgoId = userModel?.ngoId ?? '';
         }
 
+        // Gera o identificador uma única vez para que novas tentativas não dupliquem o cadastro.
+        final animalId = widget.animalToEdit?.id ?? (_pendingAnimalId ??= _animalService.newAnimalId());
+
         final animal = AnimalModel(
-          id: widget.animalToEdit?.id ?? '',
+          id: animalId,
           name: _nameController.text,
           description: _descriptionController.text,
           imageUrl: imageUrl,
@@ -91,16 +109,20 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
           gender: _selectedGender,
         );
 
-        if (widget.animalToEdit == null) {
-          await _animalService.addAnimal(animal);
-        } else {
-          await _animalService.updateAnimal(animal, oldImageUrl: oldImageUrl);
+        // Etapa 2: gravação no Firestore. Se expirar, a escrita permanece na fila offline e será sincronizada depois.
+        String message;
+        try {
+          if (isEditing) {
+            await _animalService.updateAnimal(animal, oldImageUrl: oldImageUrl);
+          } else {
+            await _animalService.addAnimal(animal);
+          }
+          message = isEditing ? 'Dados atualizados com sucesso!' : 'Animal cadastrado com sucesso!';
+        } on TimeoutException {
+          message = 'Sem conexão. O animal foi salvo no aparelho e será enviado automaticamente quando a internet voltar.';
         }
 
         if (mounted) {
-          final message = widget.animalToEdit == null
-              ? 'Animal cadastrado com sucesso!'
-              : 'Dados atualizados com sucesso!';
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(message)),
           );
@@ -108,8 +130,11 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
         }
       } catch (e) {
         if (mounted) {
+          final message = isConnectionError(e)
+              ? noConnectionMessage
+              : 'Falha ao salvar o animal. Tente novamente.';
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Falha ao salvar o animal. Tente novamente.')),
+            SnackBar(content: Text(message)),
           );
         }
       } finally {
@@ -170,12 +195,14 @@ class _AnimalFormScreenState extends State<AnimalFormScreen> {
                 onImageSelected: (file) {
                   setState(() {
                     _selectedImage = file;
+                    _uploadedImageUrl = null;
                     if (file != null) _isImageRemoved = false;
                   });
                 },
                 onImageRemoved: () {
                   setState(() {
                     _selectedImage = null;
+                    _uploadedImageUrl = null;
                     _isImageRemoved = true;
                   });
                 },
