@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
@@ -350,10 +351,11 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24.0),
-
-              // Renderiza os atalhos temporários de teste para desenvolvimento.
-              _buildDevQuickLoginShortcuts(),
+              // Renderiza os atalhos de teste apenas em builds de desenvolvimento (debug).
+              if (kDebugMode) ...[
+                const SizedBox(height: 24.0),
+                _buildDevQuickLoginShortcuts(),
+              ],
             ],
           ),
         ),
