@@ -9,6 +9,7 @@ import '../utils/formatters.dart';
 import 'approve_reject_buttons.dart';
 import 'custom_network_image.dart';
 import 'gender_tag.dart';
+import 'info_banner.dart';
 import 'whatsapp_button.dart';
 
 // Renderiza o cartão individual com os dados combinados da solicitação de adoção, animal e adotante.
@@ -143,16 +144,15 @@ class AdoptionRequestCard extends StatelessWidget {
                         onReject: onReject,
                       ),
                     ] else if (request.status == AdoptionStatus.approved.name) ...[
-                      const ContainerStatusBadge(
-                        text: 'Adoção Concluída e Aprovada',
-                        color: Colors.green,
-                        icon: Icons.check_circle,
+                      const InfoBanner(
+                        type: InfoBannerType.success,
+                        message: 'Adoção Concluída e Aprovada',
                       ),
                     ] else ...[
-                      const ContainerStatusBadge(
-                        text: 'Solicitação Recusada',
-                        color: Colors.red,
+                      const InfoBanner(
+                        type: InfoBannerType.error,
                         icon: Icons.cancel,
+                        message: 'Solicitação Recusada',
                       ),
                     ],
                   ],
@@ -161,47 +161,6 @@ class AdoptionRequestCard extends StatelessWidget {
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-// Renderiza uma badge de indicação visual de status da solicitação.
-class ContainerStatusBadge extends StatelessWidget {
-  final String text;
-  final Color color;
-  final IconData icon;
-
-  const ContainerStatusBadge({
-    super.key,
-    required this.text,
-    required this.color,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
-      decoration: BoxDecoration(
-        color: color.withAlpha(25),
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: color.withAlpha(76)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 20.0),
-          const SizedBox(width: 8.0),
-          Text(
-            text,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 14.0,
-            ),
-          ),
-        ],
       ),
     );
   }

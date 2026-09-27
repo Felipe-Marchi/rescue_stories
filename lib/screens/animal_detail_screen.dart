@@ -10,6 +10,7 @@ import '../utils/whatsapp.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
 import '../widgets/gender_tag.dart';
+import '../widgets/info_banner.dart';
 import '../widgets/ngo_card.dart';
 import '../widgets/primary_button.dart';
 import 'login_form_screen.dart';
@@ -189,31 +190,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         }
 
         if (!userModel.isAdopter) {
-          return Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12.0),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.info_outline, color: Colors.grey.shade600, size: 20),
-                const SizedBox(width: 8.0),
-                Expanded(
-                  child: Text(
-                    'Adoção disponível apenas para contas de Adotantes.',
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      color: Colors.grey.shade700,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
+          return const InfoBanner(
+            type: InfoBannerType.info,
+            message: 'Adoção disponível apenas para contas de Adotantes.',
           );
         }
 

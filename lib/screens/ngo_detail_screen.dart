@@ -4,6 +4,7 @@ import '../models/enums/user_status.dart';
 import '../services/auth_service.dart';
 import '../widgets/approve_reject_buttons.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/info_banner.dart';
 import '../widgets/ngo_card.dart';
 
 // Renderiza a interface de exibição detalhada e avaliação de uma organização.
@@ -139,28 +140,9 @@ class _NgoDetailScreenState extends State<NgoDetailScreen> {
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
             else if (isApproved)
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(color: Colors.green.shade300),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 24),
-                    SizedBox(width: 8.0),
-                    Text(
-                      'Instituição Aprovada e Ativa',
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
+              const InfoBanner(
+                type: InfoBannerType.success,
+                message: 'Instituição Aprovada e Ativa',
               )
             else
               ApproveRejectButtons(

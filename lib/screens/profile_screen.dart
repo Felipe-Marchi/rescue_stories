@@ -3,6 +3,7 @@ import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/info_banner.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/secondary_button.dart';
 import '../widgets/user_card.dart';
@@ -56,39 +57,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Constrói o aviso em destaque para usuários que ainda não cadastraram telefone.
+  // Constrói o aviso em destaque para adotantes que ainda não cadastraram telefone.
   Widget _buildPhoneWarning(UserModel userModel) {
-    return Material(
-      color: Colors.amber.shade50,
-      borderRadius: BorderRadius.circular(12.0),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12.0),
-        onTap: () => _openProfileForm(userModel),
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.0),
-            border: Border.all(color: Colors.amber.shade300),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.phone_outlined, color: Colors.amber.shade800, size: 28.0),
-              const SizedBox(width: 12.0),
-              const Expanded(
-                child: Text(
-                  'Adicione seu telefone para que a ONG possa entrar em contato.',
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ),
-              Icon(Icons.chevron_right, color: Colors.amber.shade800),
-            ],
-          ),
-        ),
-      ),
+    return InfoBanner(
+      type: InfoBannerType.warning,
+      icon: Icons.phone_outlined,
+      message: 'Adicione seu telefone para que a ONG possa entrar em contato.',
+      onTap: () => _openProfileForm(userModel),
     );
   }
 
@@ -177,28 +152,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Constrói o painel de atalhos e informações institucionais da ONG.
   Widget _buildNgoPanel(BuildContext context, UserModel userModel) {
+    // Exibe apenas o aviso de situação enquanto a instituição não estiver liberada.
+    if (!userModel.isActive || userModel.ngoId == null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 24.0),
+        child: userModel.isUnderReview
+            ? const InfoBanner(
+                type: InfoBannerType.warning,
+                icon: Icons.hourglass_top,
+                title: 'Cadastro em Análise',
+                message: 'Sua instituição foi enviada para análise da administração. Em breve você receberá a liberação para publicar animais.',
+              )
+            : const InfoBanner(
+                type: InfoBannerType.error,
+                title: 'Cadastro Não Aprovado',
+                message: 'Sua solicitação de cadastro não foi aprovada. Entre em contato com o suporte para mais informações.',
+              ),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 24.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: userModel.isActive ? Colors.green.shade50 : Colors.amber.shade50,
+        color: Colors.green.shade50,
         borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: userModel.isActive ? Colors.green.shade200 : Colors.amber.shade300,
-        ),
+        border: Border.all(color: Colors.green.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
               Icon(
                 Icons.business,
-                color: userModel.isActive ? Colors.green : Colors.amber.shade800,
+                color: Colors.green,
                 size: 28,
               ),
-              const SizedBox(width: 8.0),
-              const Text(
+              SizedBox(width: 8.0),
+              Text(
                 'Painel da Instituição',
                 style: TextStyle(
                   fontSize: 18.0,
@@ -210,108 +202,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 12.0),
 
-          if (userModel.isActive && userModel.ngoId != null) ...[
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Solicitações de Adoção'),
-              subtitle: const Text('Gerenciar intenções recebidas de adotantes'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Solicitações de Adoção'),
+            subtitle: const Text('Gerenciar intenções recebidas de adotantes'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdoptionManagementScreen(
+                    ngoId: userModel.ngoId!,
+                  ),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Meus Animais Cadastrados'),
+            subtitle: const Text('Visualizar, editar e remover resgates'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AnimalManagementScreen(
+                    ngoId: userModel.ngoId!,
+                  ),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Cadastrar Novo Animal'),
+            subtitle: const Text('Publicar um novo animal para adoção'),
+            trailing: const Icon(Icons.add_circle_outline, color: Colors.green),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AnimalFormScreen(),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Editar Dados da ONG'),
+            subtitle: const Text('Atualizar telefone, e-mail e endereço'),
+            trailing: const Icon(Icons.edit, color: Colors.green),
+            onTap: () async {
+              final ngo = await NgoService().getNgoById(userModel.ngoId!);
+              if (context.mounted && ngo != null) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AdoptionManagementScreen(
-                      ngoId: userModel.ngoId!,
-                    ),
+                    builder: (context) => NgoFormScreen(ngoToEdit: ngo),
                   ),
                 );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Meus Animais Cadastrados'),
-              subtitle: const Text('Visualizar, editar e remover resgates'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AnimalManagementScreen(
-                      ngoId: userModel.ngoId!,
-                    ),
-                  ),
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Cadastrar Novo Animal'),
-              subtitle: const Text('Publicar um novo animal para adoção'),
-              trailing: const Icon(Icons.add_circle_outline, color: Colors.green),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AnimalFormScreen(),
-                  ),
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Editar Dados da ONG'),
-              subtitle: const Text('Atualizar telefone, e-mail e endereço'),
-              trailing: const Icon(Icons.edit, color: Colors.green),
-              onTap: () async {
-                final ngo = await NgoService().getNgoById(userModel.ngoId!);
-                if (context.mounted && ngo != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NgoFormScreen(ngoToEdit: ngo),
-                    ),
-                  );
-                }
-              },
-            ),
-          ] else if (userModel.isUnderReview) ...[
-            const Text(
-              'Cadastro em Análise',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15.0,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 4.0),
-            Text(
-              'Sua instituição foi enviada para análise da administração. Em breve você receberá a liberação para publicar animais.',
-              style: TextStyle(
-                fontSize: 13.0,
-                color: Colors.grey.shade700,
-              ),
-            ),
-          ] else ...[
-            const Text(
-              'Cadastro Não Aprovado',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15.0,
-                color: Colors.red,
-              ),
-            ),
-            const SizedBox(height: 4.0),
-            Text(
-              'Sua solicitação de cadastro não foi aprovada. Entre em contato com o suporte para mais informações.',
-              style: TextStyle(
-                fontSize: 13.0,
-                color: Colors.grey.shade700,
-              ),
-            ),
-          ],
+              }
+            },
+          ),
         ],
       ),
     );
