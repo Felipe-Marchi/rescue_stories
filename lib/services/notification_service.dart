@@ -4,6 +4,7 @@ import '../models/animal_model.dart';
 import '../models/enums/notification_type.dart';
 import '../models/notification_model.dart';
 import '../utils/animal_gender_words.dart';
+import '../utils/reminder_config.dart';
 import 'auth_service.dart';
 
 // Gerencia a criação, leitura e marcação das notificações dos usuários no Firestore.
@@ -187,6 +188,32 @@ class NotificationService {
       body: 'Dessa vez a adoção ${words.contraction} ${animal.name} não foi possível, '
           'mas muitos outros animais esperam por um lar.',
     );
+  }
+
+  // Lembra o representante da ONG sobre solicitações de adoção sem resposta há vários dias.
+  Future<void> notifyPendingRequestsReminder({
+    required String ngoOwnerId,
+    required String ngoId,
+    required int pendingCount,
+  }) {
+    return create(
+      userId: ngoOwnerId,
+      type: NotificationType.pendingRequestsReminder,
+      relatedId: ngoId,
+      title: pendingRequestsReminderTitle,
+      body: pendingRequestsReminderBody(pendingCount),
+    );
+  }
+
+  // Título do lembrete de solicitações pendentes, compartilhado com a notificação do aparelho.
+  static const String pendingRequestsReminderTitle = 'Solicitações aguardando resposta';
+
+  // Monta o texto do lembrete de solicitações pendentes com a concordância da quantidade.
+  static String pendingRequestsReminderBody(int pendingCount) {
+    final requests = pendingCount == 1
+        ? '1 solicitação de adoção espera'
+        : '$pendingCount solicitações de adoção esperam';
+    return '$requests sua resposta há mais de ${ReminderConfig.pendingRequestThresholdLabel}.';
   }
 
   // Avisa todos os administradores que uma instituição enviou os dados para análise.

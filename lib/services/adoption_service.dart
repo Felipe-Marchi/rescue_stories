@@ -42,6 +42,33 @@ class AdoptionService {
         .map((snapshot) => snapshot.size);
   }
 
+  // Recupera a quantidade de solicitações pendentes de uma ONG criadas há mais tempo que o prazo informado.
+  Future<int> countPendingOlderThan(String ngoId, Duration threshold) async {
+    final snapshot = await _requestsCollection
+        .where('ngoId', isEqualTo: ngoId)
+        .where('status', isEqualTo: AdoptionStatus.pending.name)
+        .get();
+
+    final limit = DateTime.now().subtract(threshold);
+    return snapshot.docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return AdoptionRequestModel.fromMap(doc.id, data).createdAt.isBefore(limit);
+    }).length;
+  }
+
+  // Recupera as solicitações de adoção aprovadas de um adotante.
+  Future<List<AdoptionRequestModel>> getApprovedRequestsByAdopter(String adopterId) async {
+    final snapshot = await _requestsCollection
+        .where('adopterId', isEqualTo: adopterId)
+        .where('status', isEqualTo: AdoptionStatus.approved.name)
+        .get();
+
+    return snapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return AdoptionRequestModel.fromMap(doc.id, data);
+    }).toList();
+  }
+
   // Atualiza a situação do pedido de adoção no banco de dados e avisa o adotante sobre a decisão da ONG.
   Future<void> updateRequestStatus(AdoptionRequestModel request, AdoptionStatus status) async {
     await _requestsCollection.doc(request.id).update({
