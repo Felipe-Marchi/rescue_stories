@@ -15,8 +15,10 @@ class InfoBanner extends StatelessWidget {
   final String? title;
   final IconData? icon;
   final VoidCallback? onTap;
+  final bool compact;
 
   // Inicializa o componente exigindo o tipo e a mensagem; sem ícone informado, usa o ícone padrão do tipo.
+  // O modo compacto reduz espaçamento, ícone e fonte para uso dentro de cartões de lista.
   const InfoBanner({
     super.key,
     required this.type,
@@ -24,6 +26,7 @@ class InfoBanner extends StatelessWidget {
     this.title,
     this.icon,
     this.onTap,
+    this.compact = false,
   });
 
   // Retorna a cor de fundo correspondente ao tipo do aviso.
@@ -87,15 +90,15 @@ class InfoBanner extends StatelessWidget {
     final borderRadius = BorderRadius.circular(12.0);
 
     final content = Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(compact ? 10.0 : 16.0),
       decoration: BoxDecoration(
         borderRadius: borderRadius,
         border: Border.all(color: _borderColor),
       ),
       child: Row(
         children: [
-          Icon(icon ?? _defaultIcon, color: _accentColor, size: 28.0),
-          const SizedBox(width: 12.0),
+          Icon(icon ?? _defaultIcon, color: _accentColor, size: compact ? 20.0 : 28.0),
+          SizedBox(width: compact ? 8.0 : 12.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,8 +106,8 @@ class InfoBanner extends StatelessWidget {
                 if (title != null && title!.isNotEmpty) ...[
                   Text(
                     title!,
-                    style: const TextStyle(
-                      fontSize: 15.0,
+                    style: TextStyle(
+                      fontSize: compact ? 13.0 : 15.0,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -114,7 +117,7 @@ class InfoBanner extends StatelessWidget {
                 Text(
                   message,
                   style: TextStyle(
-                    fontSize: 14.0,
+                    fontSize: compact ? 13.0 : 14.0,
                     color: Colors.grey.shade800,
                     fontWeight: title == null ? FontWeight.w600 : FontWeight.normal,
                   ),

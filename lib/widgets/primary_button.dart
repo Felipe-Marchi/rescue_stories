@@ -7,9 +7,10 @@ class PrimaryButton extends StatelessWidget {
   final bool isLoading;
   final Color color;
   final Widget? icon;
+  final bool compact;
 
   // Inicializa o componente exigindo texto e acao, gerenciando a trava de clique durante operacoes.
-  // Aceita opcionalmente uma cor de fundo e um ícone exibido antes do texto.
+  // Aceita opcionalmente uma cor de fundo, um ícone exibido antes do texto e o modo compacto para listas.
   const PrimaryButton({
     super.key,
     required this.text,
@@ -17,6 +18,7 @@ class PrimaryButton extends StatelessWidget {
     this.isLoading = false,
     this.color = Colors.green,
     this.icon,
+    this.compact = false,
   });
 
   @override
@@ -24,22 +26,31 @@ class PrimaryButton extends StatelessWidget {
     final style = ElevatedButton.styleFrom(
       backgroundColor: color,
       foregroundColor: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      // No modo compacto, reduz a altura e adiciona margem lateral, pois o botão não ocupa a largura toda.
+      padding: compact
+          ? const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0)
+          : const EdgeInsets.symmetric(vertical: 16.0),
+      iconSize: compact ? 16.0 : null,
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
       ),
     );
 
+    final spinnerSize = compact ? 18.0 : 24.0;
+
     final label = isLoading
-        ? const SizedBox(
-            height: 24,
-            width: 24,
-            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+        ? SizedBox(
+            height: spinnerSize,
+            width: spinnerSize,
+            child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
           )
         : Text(
             text,
-            style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: compact ? 14.0 : 16.0,
+              fontWeight: FontWeight.bold,
+            ),
           );
 
     if (icon != null && !isLoading) {
