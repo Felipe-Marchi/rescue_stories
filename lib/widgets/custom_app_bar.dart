@@ -18,6 +18,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Ajusta a tipografia dinamicamente com base na hierarquia da tela.
+    final titleText = Text(
+      title,
+      maxLines: 1,
+      overflow: isMainPage ? TextOverflow.visible : TextOverflow.ellipsis,
+      style: TextStyle(
+        color: Colors.black87,
+        // Usa negrito extra-pesado para a Home, e semi-negrito para telas internas.
+        fontWeight: isMainPage ? FontWeight.w800 : FontWeight.w600,
+        // Usa fonte tamanho 22 para a Home, e 18 para telas internas.
+        fontSize: isMainPage ? 22.0 : 18.0,
+      ),
+    );
+
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -36,16 +50,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             const SizedBox(width: 8.0),
           ],
-          // Ajusta a tipografia dinamicamente com base na hierarquia da tela.
-          Text(
-            title,
-            style: TextStyle(
-              color: Colors.black87,
-              // Usa negrito extra-pesado para a Home, e semi-negrito para telas internas.
-              fontWeight: isMainPage ? FontWeight.w800 : FontWeight.w600,
-              // Usa fonte tamanho 22 para a Home, e 18 para telas internas.
-              fontSize: isMainPage ? 22.0 : 18.0,
-            ),
+          // Na Home, reduz a fonte para o título caber inteiro ao lado das ações;
+          // nas telas internas, corta títulos longos com reticências.
+          Flexible(
+            child: isMainPage
+                ? FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: titleText,
+                  )
+                : titleText,
           ),
         ],
       ),
