@@ -10,6 +10,9 @@ class AdoptionRequestModel {
   final String status;
   final DateTime createdAt;
 
+  // Momento em que a ONG aprovou ou recusou a solicitação (nulo enquanto pendente e em solicitações antigas).
+  final DateTime? decidedAt;
+
   // Inicializa uma instância da classe com os dados obrigatórios da intenção de adoção.
   AdoptionRequestModel({
     required this.id,
@@ -18,6 +21,7 @@ class AdoptionRequestModel {
     required this.ngoId,
     required this.status,
     required this.createdAt,
+    this.decidedAt,
   });
 
   // Converte a instância da classe em um mapa de dados para gravação no Firestore.
@@ -28,6 +32,7 @@ class AdoptionRequestModel {
       'ngoId': ngoId,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
+      'decidedAt': decidedAt == null ? null : Timestamp.fromDate(decidedAt!),
     };
   }
 
@@ -40,6 +45,7 @@ class AdoptionRequestModel {
       ngoId: data['ngoId'] ?? '',
       status: data['status'] ?? AdoptionStatus.pending.name,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      decidedAt: (data['decidedAt'] as Timestamp?)?.toDate(),
     );
   }
 }

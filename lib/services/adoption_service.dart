@@ -69,10 +69,12 @@ class AdoptionService {
     }).toList();
   }
 
-  // Atualiza a situação do pedido de adoção no banco de dados e avisa o adotante sobre a decisão da ONG.
+  // Atualiza a situação do pedido de adoção no banco de dados, registrando o momento da decisão,
+  // e avisa o adotante sobre a decisão da ONG.
   Future<void> updateRequestStatus(AdoptionRequestModel request, AdoptionStatus status) async {
     await _requestsCollection.doc(request.id).update({
       'status': status.name,
+      'decidedAt': FieldValue.serverTimestamp(),
     });
 
     unawaited(_notifyAdopterAboutDecision(request, status));
