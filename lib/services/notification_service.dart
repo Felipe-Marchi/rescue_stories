@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/animal_model.dart';
+import '../models/dtos/notification_feed_snapshot.dart';
 import '../models/enums/notification_type.dart';
 import '../models/enums/user_role.dart';
 import '../models/notification_model.dart';
@@ -19,12 +20,14 @@ class NotificationService {
   static const int _listLimit = 50;
 
   // Registra uma notificação para o usuário informado, registrando no console qualquer falha sem propagá-la.
+  // Com documentId, reaproveita sempre o mesmo documento em vez de criar um novo.
   Future<void> create({
     required String userId,
     required String title,
     required String body,
     required NotificationType type,
     String relatedId = '',
+    String? documentId,
   }) async {
     if (userId.isEmpty) return;
 
@@ -39,7 +42,12 @@ class NotificationService {
         read: false,
         createdAt: DateTime.now(),
       );
-      await _notificationsCollection.add(notification.toMap());
+      // Com id fixo, sobrescreve o documento existente (voltando a não lido e com data renovada).
+      if (documentId != null) {
+        await _notificationsCollection.doc(documentId).set(notification.toMap());
+      } else {
+        await _notificationsCollection.add(notification.toMap());
+      }
     } catch (e) {
       debugPrint('Falha ao criar notificação (${type.name}): $e');
     }
@@ -60,32 +68,32 @@ class NotificationService {
     });
   }
 
-  // Recupera as notificações novas que chegam do servidor depois do início da escuta.
-  // Ignora as já existentes, as lidas e as criadas pelo próprio aparelho, que já tiveram aviso na tela.
-  Stream<NotificationModel> streamIncomingForUser(String userId) {
-    // A margem tolera pequenas diferenças entre o relógio do aparelho e o do servidor.
-    final startedAt = DateTime.now().subtract(const Duration(minutes: 1));
-    var isFirstSnapshot = true;
-
+  // Recupera em tempo real as notificações mais recentes do usuário, indicando quais foram criadas
+  // pelo próprio aparelho e ainda aguardam envio, e se a leitura veio do cache local.
+  // Inclui as mudanças de metadados para saber quando o servidor confirmou a leitura, mesmo sem dados novos.
+  Stream<NotificationFeedSnapshot> streamFeedForUser(String userId) {
     return _notificationsCollection
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .limit(_listLimit)
-        .snapshots()
-        .expand((snapshot) {
-      if (isFirstSnapshot) {
-        isFirstSnapshot = false;
-        return const <NotificationModel>[];
+        .snapshots(includeMetadataChanges: true)
+        .map((snapshot) {
+      final synced = <NotificationModel>[];
+      final pendingIds = <String>{};
+
+      for (final doc in snapshot.docs) {
+        if (doc.metadata.hasPendingWrites) {
+          pendingIds.add(doc.id);
+        } else {
+          synced.add(NotificationModel.fromMap(doc.id, doc.data() as Map<String, dynamic>));
+        }
       }
 
-      return snapshot.docChanges
-          .where((change) =>
-              change.type == DocumentChangeType.added && !change.doc.metadata.hasPendingWrites)
-          .map((change) {
-            final data = change.doc.data() as Map<String, dynamic>;
-            return NotificationModel.fromMap(change.doc.id, data);
-          })
-          .where((notification) => !notification.read && notification.createdAt.isAfter(startedAt));
+      return NotificationFeedSnapshot(
+        synced: synced,
+        pendingIds: pendingIds,
+        isFromCache: snapshot.metadata.isFromCache,
+      );
     });
   }
 
@@ -208,12 +216,14 @@ class NotificationService {
   }
 
   // Lembra o representante da ONG sobre solicitações de adoção sem resposta há vários dias.
+  // Atualiza sempre o mesmo documento por usuário, para não acumular lembretes na central.
   Future<void> notifyPendingRequestsReminder({
     required String ngoOwnerId,
     required String ngoId,
     required int pendingCount,
   }) {
     return create(
+      documentId: 'pendingRequestsReminder_$ngoOwnerId',
       userId: ngoOwnerId,
       type: NotificationType.pendingRequestsReminder,
       relatedId: ngoId,

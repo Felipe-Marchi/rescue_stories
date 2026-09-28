@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/animal_model.dart';
 import '../models/enums/notification_type.dart';
 import '../models/user_model.dart';
 import '../utils/animal_gender_words.dart';
@@ -38,17 +39,25 @@ class ReminderService {
     }
   }
 
-  // Lembra a ONG sobre solicitações pendentes além do prazo, no máximo uma vez por intervalo configurado.
+  // Registra que a ONG abriu "Solicitações de Adoção", adiando o lembrete de pendentes.
+  Future<void> recordAdoptionRequestsVisit(String userId) async {
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setInt(_lastVisitKey(userId), DateTime.now().millisecondsSinceEpoch);
+    } catch (e) {
+      debugPrint('Falha ao registrar a visita às solicitações de adoção: $e');
+    }
+  }
+
+  // Lembra a ONG sobre solicitações pendentes além do prazo, respeitando o intervalo entre lembretes
+  // e sem lembrar quem abriu as solicitações recentemente.
   Future<void> _checkPendingRequests(UserModel user) async {
     final ngoId = user.ngoId!;
     final preferences = await SharedPreferences.getInstance();
     final lastReminderKey = 'ngo_reminder_last_${user.id}';
 
-    final lastReminderMillis = preferences.getInt(lastReminderKey);
-    if (lastReminderMillis != null) {
-      final lastReminder = DateTime.fromMillisecondsSinceEpoch(lastReminderMillis);
-      if (DateTime.now().difference(lastReminder) < ReminderConfig.ngoReminderInterval) return;
-    }
+    if (_isWithin(preferences.getInt(lastReminderKey), ReminderConfig.ngoReminderInterval)) return;
+    if (_isWithin(preferences.getInt(_lastVisitKey(user.id)), ReminderConfig.recentVisitWindow)) return;
 
     final pendingCount = await _adoptionService.countPendingOlderThan(
       ngoId,
@@ -75,31 +84,134 @@ class ReminderService {
     );
   }
 
-  // Agenda o lembrete periódico de cada adoção aprovada, sem reagendar os que já estão agendados.
+  // Reagenda o lembrete de acompanhamento do adotante a partir de agora, sem as demais verificações.
+  // Usado quando o app vai para segundo plano, para contar a inatividade a partir da saída.
+  Future<void> rescheduleAdoptionFollowUp(UserModel user) async {
+    if (!user.isAdopter || _isChecking) return;
+    _isChecking = true;
+
+    try {
+      await _scheduleAdoptionFollowUps(user);
+    } catch (e) {
+      debugPrint('Falha ao reagendar o lembrete de acompanhamento: $e');
+    } finally {
+      _isChecking = false;
+    }
+  }
+
+  // Agenda os lembretes de inatividade do adotante: cancela todos os de acompanhamento e, se houver
+  // adoção aprovada, agenda dois alarmes únicos, após 1 e 2 períodos de inatividade contados de agora.
+  // Como roda a cada uso do app, o prazo é sempre empurrado para frente.
   Future<void> _scheduleAdoptionFollowUps(UserModel user) async {
+    // Cancela todos os lembretes de acompanhamento, inclusive os de versões anteriores do app.
+    final scheduled = await _localNotificationService.scheduledReminders();
+    final existingIds = scheduled.entries
+        .where((entry) => entry.value?.type == NotificationType.adoptionFollowUpReminder)
+        .map((entry) => entry.key)
+        .toList();
+    for (final id in existingIds) {
+      await _localNotificationService.cancel(id);
+    }
+
     final approvedRequests = await _adoptionService.getApprovedRequestsByAdopter(user.id);
-    if (approvedRequests.isEmpty) return;
 
-    final scheduledIds = await _localNotificationService.scheduledIds();
-
+    // Agrupa por animal, guardando a decisão mais recente de cada um
+    // (solicitações antigas, sem data de decisão, usam a data de criação).
+    final decidedAtByAnimal = <String, DateTime>{};
     for (final request in approvedRequests) {
-      final reminderId = LocalNotificationService.notificationIdFor('adoptionFollowUp:${request.id}');
-      if (scheduledIds.contains(reminderId)) continue;
+      final decidedAt = request.decidedAt ?? request.createdAt;
+      final current = decidedAtByAnimal[request.animalId];
+      if (current == null || decidedAt.isAfter(current)) {
+        decidedAtByAnimal[request.animalId] = decidedAt;
+      }
+    }
 
-      final animal = await _animalService.getAnimalById(request.animalId);
-      if (animal == null) continue;
+    // Ordena da adoção mais recente para a mais antiga e ignora animais que não existem mais.
+    final animalIds = decidedAtByAnimal.keys.toList()
+      ..sort((a, b) => decidedAtByAnimal[b]!.compareTo(decidedAtByAnimal[a]!));
+    final animals = <AnimalModel>[];
+    for (final animalId in animalIds) {
+      final animal = await _animalService.getAnimalById(animalId);
+      if (animal != null) animals.add(animal);
+    }
 
-      final words = AnimalGenderWords.fromGender(animal.gender);
-      await _localNotificationService.schedulePeriodic(
-        id: reminderId,
-        title: 'Como está ${words.article} ${animal.name}?',
-        body: 'Conte para a ONG como ${words.subject} está se adaptando ao novo lar.',
-        interval: ReminderConfig.adoptionFollowUpInterval,
-        payload: LocalNotificationPayload(
-          type: NotificationType.adoptionFollowUpReminder,
-          relatedId: animal.id,
-        ),
+    if (animals.isEmpty) return;
+
+    // O primeiro lembrete respeita o prazo mínimo após a aprovação mais recente; o segundo vem um período depois.
+    final now = DateTime.now();
+    final period = ReminderConfig.adoptionInactivityPeriod;
+    final earliest = decidedAtByAnimal[animals.first.id]!.add(ReminderConfig.adoptionFollowUpMinDelay);
+    final first = _outsideQuietHours(_latest(now.add(period), earliest));
+    final second = _outsideQuietHours(_latest(now.add(period * 2), first.add(period)));
+
+    final texts = _followUpTexts(animals);
+    final payload = LocalNotificationPayload(
+      type: NotificationType.adoptionFollowUpReminder,
+      // Com um animal, o toque abre o detalhe dele; com vários, abre a Home.
+      relatedId: animals.length == 1 ? animals.first.id : '',
+    );
+
+    final occurrences = [first, second];
+    for (var index = 0; index < occurrences.length; index++) {
+      await _localNotificationService.scheduleAt(
+        id: LocalNotificationService.notificationIdFor('adoptionFollowUp:${user.id}:${index + 1}'),
+        title: texts.title,
+        body: texts.body,
+        when: occurrences[index],
+        payload: payload,
       );
     }
   }
+
+  // Retorna o mais tardio entre dois instantes.
+  DateTime _latest(DateTime a, DateTime b) => a.isAfter(b) ? a : b;
+
+  // Move o instante para as 10h quando cai no horário de silêncio: do mesmo dia, se for de madrugada,
+  // ou do dia seguinte, se for à noite. Usa o horário local do aparelho.
+  DateTime _outsideQuietHours(DateTime moment) {
+    if (!ReminderConfig.applyQuietHours) return moment;
+
+    final local = moment.toLocal();
+    if (local.hour >= ReminderConfig.quietHoursEnd && local.hour < ReminderConfig.quietHoursStart) {
+      return moment;
+    }
+
+    final day = local.hour < ReminderConfig.quietHoursEnd ? local.day : local.day + 1;
+    return DateTime(local.year, local.month, day, ReminderConfig.quietHoursRescheduleHour);
+  }
+
+  // Monta o título e o texto do lembrete de acompanhamento, com a concordância pelo sexo e pela quantidade.
+  ({String title, String body}) _followUpTexts(List<AnimalModel> animals) {
+    final names = animals.map((animal) {
+      return '${AnimalGenderWords.fromGender(animal.gender).article} ${animal.name}';
+    }).toList();
+
+    if (animals.length == 1) {
+      final words = AnimalGenderWords.fromGender(animals.first.gender);
+      return (
+        title: 'Como está ${names.first}?',
+        body: 'Conte para a ONG como ${words.subject} está se adaptando ao novo lar.',
+      );
+    }
+
+    final title = animals.length == 2
+        ? 'Como estão ${names[0]} e ${names[1]}?'
+        : 'Como estão ${names[0]}, ${names[1]} e mais ${animals.length - 2}?';
+    final allFemale = animals.every((animal) => animal.gender == 'Fêmea');
+    final subject = allFemale ? 'elas' : 'eles';
+
+    return (
+      title: title,
+      body: 'Conte para a ONG como $subject estão se adaptando ao novo lar.',
+    );
+  }
+
+  // Indica se o instante gravado (em milissegundos) está dentro do período informado até agora.
+  bool _isWithin(int? millis, Duration period) {
+    if (millis == null) return false;
+    final moment = DateTime.fromMillisecondsSinceEpoch(millis);
+    return DateTime.now().difference(moment) < period;
+  }
+
+  static String _lastVisitKey(String userId) => 'adoption_requests_opened_$userId';
 }

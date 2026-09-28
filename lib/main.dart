@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
+import 'models/user_model.dart';
 import 'screens/home_page.dart';
 import 'services/auth_service.dart';
 import 'services/local_notification_service.dart';
@@ -36,6 +37,9 @@ class _RescueStoriesAppState extends State<RescueStoriesApp> with WidgetsBinding
 
   StreamSubscription<User?>? _authSubscription;
 
+  // Último perfil carregado, reaproveitado ao ir para segundo plano sem nova leitura do banco.
+  UserModel? _currentProfile;
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +64,7 @@ class _RescueStoriesAppState extends State<RescueStoriesApp> with WidgetsBinding
   // Liga a escuta de notificações para o usuário conectado ou limpa tudo ao sair da conta.
   void _handleAuthChange(User? user) {
     if (user == null) {
+      _currentProfile = null;
       _localNotificationService.stopWatching();
       unawaited(_localNotificationService.cancelAll());
       return;
@@ -69,10 +74,18 @@ class _RescueStoriesAppState extends State<RescueStoriesApp> with WidgetsBinding
     unawaited(_checkReminders());
   }
 
-  // Verifica os lembretes sempre que o usuário volta para o aplicativo.
+  // Verifica os lembretes sempre que o usuário volta para o aplicativo e, ao sair, reagenda o lembrete
+  // de inatividade do adotante para contar a partir desse momento.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) unawaited(_checkReminders());
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_checkReminders());
+    } else if (state == AppLifecycleState.paused) {
+      final profile = _currentProfile;
+      if (profile != null && profile.id == _authService.currentUser?.uid) {
+        unawaited(_reminderService.rescheduleAdoptionFollowUp(profile));
+      }
+    }
   }
 
   // Carrega o perfil do usuário conectado e verifica os lembretes do seu papel.
@@ -82,6 +95,7 @@ class _RescueStoriesAppState extends State<RescueStoriesApp> with WidgetsBinding
 
     try {
       final profile = await _authService.getUserProfile(user.uid);
+      _currentProfile = profile;
       if (profile != null) await _reminderService.checkForUser(profile);
     } catch (e) {
       debugPrint('Falha ao carregar o perfil para os lembretes: $e');

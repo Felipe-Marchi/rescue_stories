@@ -6,6 +6,7 @@ import '../screens/adoption_management_screen.dart';
 import '../screens/animal_detail_screen.dart';
 import '../screens/ngo_form_screen.dart';
 import '../screens/ngo_management_screen.dart';
+import '../screens/notifications_screen.dart';
 import '../screens/profile_screen.dart';
 import '../services/animal_service.dart';
 import '../services/auth_service.dart';
@@ -40,6 +41,12 @@ Future<void> openNotificationTarget({
     case NotificationType.adoptionApproved:
     case NotificationType.adoptionRejected:
     case NotificationType.adoptionFollowUpReminder:
+      // O lembrete que resume vários animais adotados não aponta para um animal e leva para a Home.
+      if (relatedId.isEmpty) {
+        navigator.popUntil((route) => route.isFirst);
+        return;
+      }
+
       final animal = await AnimalService().getAnimalById(relatedId);
 
       if (animal == null) {
@@ -115,6 +122,16 @@ Future<void> openLocalNotification(LocalNotificationPayload payload) async {
 
   final navigator = appNavigatorKey.currentState;
   if (navigator == null) return;
+
+  // O resumo de novidades abre a central de notificações.
+  if (payload.opensCentral) {
+    navigator.push(
+      MaterialPageRoute(
+        builder: (context) => const NotificationsScreen(),
+      ),
+    );
+    return;
+  }
 
   await openNotificationTarget(
     navigator: navigator,
