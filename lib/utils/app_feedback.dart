@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/info_banner.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/secondary_button.dart';
 
 // Monta o aviso flutuante padronizado do aplicativo, com ícone e cores do tipo informado.
 // Use diretamente com um ScaffoldMessenger capturado antes de operações assíncronas.
@@ -48,16 +49,20 @@ void showAppSnackBar(
     ..showSnackBar(buildAppSnackBar(message, type: type));
 }
 
-// Exibe o diálogo padronizado para decisões importantes; o Future termina quando o usuário toca em "Entendi".
-Future<void> showFeedbackDialog(
+// Exibe o diálogo padronizado para decisões importantes; o Future termina quando o usuário toca em um botão.
+// Com cancelLabel, mostra também um botão secundário; retorna true apenas quando o botão principal é tocado.
+Future<bool> showFeedbackDialog(
   BuildContext context, {
   required String title,
   required String message,
   InfoBannerType type = InfoBannerType.success,
-}) {
+  IconData? icon,
+  String confirmLabel = 'Entendi',
+  String? cancelLabel,
+}) async {
   final style = InfoBannerStyle.of(type);
 
-  return showDialog<void>(
+  final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) {
       return AlertDialog(
@@ -71,7 +76,7 @@ Future<void> showFeedbackDialog(
             color: style.backgroundColor,
             shape: BoxShape.circle,
           ),
-          child: Icon(style.icon, color: style.accentColor, size: 40.0),
+          child: Icon(icon ?? style.icon, color: style.accentColor, size: 40.0),
         ),
         title: Text(
           title,
@@ -94,13 +99,23 @@ Future<void> showFeedbackDialog(
         actionsAlignment: MainAxisAlignment.center,
         actionsPadding: const EdgeInsets.fromLTRB(24.0, 0.0, 24.0, 20.0),
         actions: [
+          if (cancelLabel != null)
+            SecondaryButton(
+              text: cancelLabel,
+              compact: true,
+              color: Colors.grey.shade400,
+              textColor: Colors.black87,
+              onPressed: () => Navigator.pop(context, false),
+            ),
           PrimaryButton(
-            text: 'Entendi',
+            text: confirmLabel,
             compact: true,
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, true),
           ),
         ],
       );
     },
   );
+
+  return confirmed ?? false;
 }

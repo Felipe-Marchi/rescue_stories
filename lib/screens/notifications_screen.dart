@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
+import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/local_notification_service.dart';
 import '../services/notification_service.dart';
@@ -29,11 +30,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> with WidgetsB
   // Indica se as notificações do aparelho estão ativas; começa como verdadeiro para não piscar o aviso.
   bool _notificationsEnabled = true;
 
+  // Perfil do usuário, usado para personalizar o aviso de notificações desativadas.
+  UserModel? _profile;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _refreshPermissionStatus();
+    _loadProfile();
     _userId = _authService.currentUser?.uid;
     if (_userId != null) {
       _notificationsStream = _notificationService.streamForUser(_userId!);
@@ -62,6 +67,33 @@ class _NotificationsScreenState extends State<NotificationsScreen> with WidgetsB
     }
   }
 
+  // Carrega o perfil do usuário para escolher o texto do aviso; sem perfil, usa um texto geral.
+  Future<void> _loadProfile() async {
+    final userId = _userId;
+    if (userId == null) return;
+
+    try {
+      final profile = await _authService.getUserProfile(userId);
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+        });
+      }
+    } catch (e) {
+      debugPrint('Falha ao carregar o perfil na central de notificações: $e');
+    }
+  }
+
+  // Monta o texto do aviso de notificações desativadas conforme o perfil do usuário.
+  String get _permissionBannerMessage {
+    final profile = _profile;
+    if (profile == null) return 'Ative para receber os avisos do app no celular.';
+    if (profile.isAdopter) return 'Ative para saber quando a ONG responder ao seu pedido.';
+    if (profile.isNgoRep) return 'Ative para saber quando chegarem pedidos de adoção.';
+    if (profile.isAdmin) return 'Ative para saber quando houver instituições para aprovar.';
+    return 'Ative para receber os avisos do app no celular.';
+  }
+
   // Pede a permissão de novo ou abre as configurações do app quando o sistema bloqueia o pedido.
   Future<void> _handleEnableNotifications() async {
     await enableNotificationsOnRequest();
@@ -75,7 +107,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> with WidgetsB
       child: InfoBanner(
         type: InfoBannerType.warning,
         icon: Icons.notifications_off_outlined,
-        message: 'Ative as notificações para ser avisado no celular',
+        title: 'Notificações desativadas',
+        message: _permissionBannerMessage,
         onTap: _handleEnableNotifications,
       ),
     );

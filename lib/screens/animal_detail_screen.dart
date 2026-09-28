@@ -80,7 +80,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
     if (!mounted) return;
     await askNotificationPermissionOnce(
       context,
-      message: 'Quer saber quando a ONG responder? Ative as notificações para ser avisado no celular.',
+      title: 'Quer saber quando a ONG responder?',
+      message: 'Ative as notificações e avisamos você assim que houver novidade sobre o seu pedido.',
     );
   }
 

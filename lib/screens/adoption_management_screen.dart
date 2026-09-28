@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/adoption_request_model.dart';
 import '../models/animal_model.dart';
 import '../models/enums/adoption_status.dart';
 import '../models/user_model.dart';
 import '../services/adoption_service.dart';
+import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
+import '../services/reminder_service.dart';
 import '../utils/whatsapp.dart';
 import '../widgets/adoption_request_card.dart';
 import '../widgets/count_pill.dart';
@@ -29,6 +32,7 @@ class AdoptionManagementScreen extends StatefulWidget {
 class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
   final AdoptionService _adoptionService = AdoptionService();
   final NgoService _ngoService = NgoService();
+  final ReminderService _reminderService = ReminderService();
 
   late final Stream<List<AdoptionRequestModel>> _requestsStream;
 
@@ -37,12 +41,17 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
     super.initState();
     _requestsStream = _adoptionService.getRequestsByNgo(widget.ngoId);
 
+    // Registra a visita para não lembrar a ONG de pendentes que ela acabou de ver.
+    final userId = AuthService().currentUser?.uid;
+    if (userId != null) unawaited(_reminderService.recordAdoptionRequestsVisit(userId));
+
     // Pede a permissão de notificações para avisar a ONG sobre novas solicitações de adoção.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       askNotificationPermissionOnce(
         context,
-        message: 'Ative as notificações para saber no celular quando chegar uma nova solicitação de adoção.',
+        title: 'Não perca nenhum pedido de adoção',
+        message: 'Ative as notificações e avisamos você sempre que alguém quiser adotar um dos seus animais.',
       );
     });
   }

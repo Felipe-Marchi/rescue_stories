@@ -8,9 +8,11 @@ import 'app_feedback.dart';
 const String _permissionAskedKey = 'notification_permission_asked';
 
 // Explica o motivo e pede a permissão de notificações uma única vez por aparelho.
-// Nas próximas vezes, o usuário ainda pode ativar pelo aviso da central de notificações.
+// Se o usuário tocar em "Agora não", o pedido do sistema não é feito; ele ainda pode ativar
+// depois pelo aviso da central de notificações.
 Future<void> askNotificationPermissionOnce(
   BuildContext context, {
+  required String title,
   required String message,
 }) async {
   final localNotificationService = LocalNotificationService();
@@ -23,14 +25,17 @@ Future<void> askNotificationPermissionOnce(
     await preferences.setBool(_permissionAskedKey, true);
 
     if (!context.mounted) return;
-    await showFeedbackDialog(
+    final accepted = await showFeedbackDialog(
       context,
-      title: 'Ative as notificações',
+      title: title,
       message: message,
       type: InfoBannerType.info,
+      icon: Icons.notifications_active,
+      confirmLabel: 'Ativar notificações',
+      cancelLabel: 'Agora não',
     );
 
-    await localNotificationService.requestPermission();
+    if (accepted) await localNotificationService.requestPermission();
   } catch (e) {
     debugPrint('Falha ao pedir a permissão de notificações: $e');
   }

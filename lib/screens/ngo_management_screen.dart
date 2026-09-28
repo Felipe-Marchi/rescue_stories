@@ -25,7 +25,8 @@ class _NgoManagementScreenState extends State<NgoManagementScreen> {
       if (!mounted) return;
       askNotificationPermissionOnce(
         context,
-        message: 'Ative as notificações para saber no celular quando uma nova instituição enviar o cadastro.',
+        title: 'Novas instituições para aprovar',
+        message: 'Ative as notificações e avisamos você quando uma instituição enviar o cadastro para análise.',
       );
     });
   }

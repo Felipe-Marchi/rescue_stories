@@ -152,7 +152,8 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
           if (!mounted) return;
           await askNotificationPermissionOnce(
             context,
-            message: 'Ative as notificações para saber no celular quando o cadastro da sua instituição for analisado.',
+            title: 'Quer saber quando sua instituição for aprovada?',
+            message: 'Ative as notificações e avisamos você quando a análise terminar e quando chegarem pedidos de adoção.',
           );
           if (mounted) Navigator.pop(context);
         } else if (successMessage != null) {
