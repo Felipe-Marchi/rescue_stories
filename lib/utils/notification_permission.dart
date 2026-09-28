@@ -29,7 +29,8 @@ Future<void> askNotificationPermissionOnce(
       context,
       title: title,
       message: message,
-      type: InfoBannerType.info,
+      // Usa o estilo de sucesso para o círculo verde claro com o sino verde.
+      type: InfoBannerType.success,
       icon: Icons.notifications_active,
       confirmLabel: 'Ativar notificações',
       cancelLabel: 'Agora não',

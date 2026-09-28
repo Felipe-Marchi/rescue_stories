@@ -72,25 +72,35 @@ class NotificationTile extends StatelessWidget {
     final borderRadius = BorderRadius.circular(12.0);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
+      padding: const EdgeInsets.only(bottom: 8.0),
       child: Material(
-        color: isUnread ? style.backgroundColor : Colors.white,
+        // Não lidas ganham um fundo verde bem claro; lidas ficam brancas.
+        color: isUnread ? Colors.green.shade50.withValues(alpha: 0.5) : Colors.white,
         borderRadius: borderRadius,
         child: InkWell(
           borderRadius: borderRadius,
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.all(14.0),
+            padding: const EdgeInsets.all(12.0),
             decoration: BoxDecoration(
               borderRadius: borderRadius,
               border: Border.all(
-                color: isUnread ? style.borderColor : Colors.grey.shade200,
+                color: isUnread ? Colors.green.shade100 : Colors.grey.shade200,
               ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(_icon, color: style.accentColor, size: 26.0),
+                // Exibe o ícone do tipo dentro de um círculo com a cor clara correspondente.
+                Container(
+                  width: 36.0,
+                  height: 36.0,
+                  decoration: BoxDecoration(
+                    color: style.backgroundColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(_icon, color: style.accentColor, size: 20.0),
+                ),
                 const SizedBox(width: 12.0),
                 Expanded(
                   child: Column(
@@ -101,10 +111,12 @@ class NotificationTile extends StatelessWidget {
                           Expanded(
                             child: Text(
                               notification.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 15.0,
-                                fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
-                                color: Colors.black87,
+                                fontWeight: FontWeight.bold,
+                                color: isUnread ? Colors.black87 : Colors.grey.shade700,
                               ),
                             ),
                           ),
@@ -112,37 +124,38 @@ class NotificationTile extends StatelessWidget {
                           Text(
                             formatRelativeDate(notification.createdAt),
                             style: TextStyle(
-                              fontSize: 12.0,
-                              color: Colors.grey.shade600,
+                              fontSize: 11.0,
+                              color: Colors.grey.shade500,
                             ),
                           ),
+                          // Exibe um ponto verde indicador nas notificações ainda não lidas.
+                          if (isUnread) ...[
+                            const SizedBox(width: 6.0),
+                            Container(
+                              width: 8.0,
+                              height: 8.0,
+                              decoration: const BoxDecoration(
+                                color: Colors.green,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
-                      const SizedBox(height: 4.0),
+                      const SizedBox(height: 2.0),
                       Text(
                         notification.body,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 14.0,
+                          fontSize: 13.0,
                           height: 1.3,
-                          color: Colors.grey.shade800,
+                          color: isUnread ? Colors.grey.shade800 : Colors.grey.shade600,
                         ),
                       ),
                     ],
                   ),
                 ),
-                // Exibe um ponto indicador nas notificações ainda não lidas.
-                if (isUnread) ...[
-                  const SizedBox(width: 8.0),
-                  Container(
-                    margin: const EdgeInsets.only(top: 6.0),
-                    width: 8.0,
-                    height: 8.0,
-                    decoration: BoxDecoration(
-                      color: style.accentColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

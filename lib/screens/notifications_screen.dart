@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
-import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/local_notification_service.dart';
 import '../services/notification_service.dart';
 import '../utils/notification_navigation.dart';
 import '../utils/notification_permission.dart';
-import '../widgets/info_banner.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/notification_tile.dart';
 
@@ -30,15 +28,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> with WidgetsB
   // Indica se as notificações do aparelho estão ativas; começa como verdadeiro para não piscar o aviso.
   bool _notificationsEnabled = true;
 
-  // Perfil do usuário, usado para personalizar o aviso de notificações desativadas.
-  UserModel? _profile;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _refreshPermissionStatus();
-    _loadProfile();
     _userId = _authService.currentUser?.uid;
     if (_userId != null) {
       _notificationsStream = _notificationService.streamForUser(_userId!);
@@ -67,49 +61,86 @@ class _NotificationsScreenState extends State<NotificationsScreen> with WidgetsB
     }
   }
 
-  // Carrega o perfil do usuário para escolher o texto do aviso; sem perfil, usa um texto geral.
-  Future<void> _loadProfile() async {
-    final userId = _userId;
-    if (userId == null) return;
-
-    try {
-      final profile = await _authService.getUserProfile(userId);
-      if (mounted) {
-        setState(() {
-          _profile = profile;
-        });
-      }
-    } catch (e) {
-      debugPrint('Falha ao carregar o perfil na central de notificações: $e');
-    }
-  }
-
-  // Monta o texto do aviso de notificações desativadas conforme o perfil do usuário.
-  String get _permissionBannerMessage {
-    final profile = _profile;
-    if (profile == null) return 'Ative para receber os avisos do app no celular.';
-    if (profile.isAdopter) return 'Ative para saber quando a ONG responder ao seu pedido.';
-    if (profile.isNgoRep) return 'Ative para saber quando chegarem pedidos de adoção.';
-    if (profile.isAdmin) return 'Ative para saber quando houver instituições para aprovar.';
-    return 'Ative para receber os avisos do app no celular.';
-  }
-
   // Pede a permissão de novo ou abre as configurações do app quando o sistema bloqueia o pedido.
   Future<void> _handleEnableNotifications() async {
     await enableNotificationsOnRequest();
     await _refreshPermissionStatus();
   }
 
-  // Constrói o aviso exibido enquanto as notificações do aparelho estiverem desativadas.
+  // Constrói a faixa discreta exibida enquanto as notificações do aparelho estiverem desativadas.
   Widget _buildPermissionBanner() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0.0),
-      child: InfoBanner(
-        type: InfoBannerType.warning,
-        icon: Icons.notifications_off_outlined,
-        title: 'Notificações desativadas',
-        message: _permissionBannerMessage,
-        onTap: _handleEnableNotifications,
+      padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 0.0),
+      child: Container(
+        padding: const EdgeInsets.only(left: 12.0, right: 4.0),
+        decoration: BoxDecoration(
+          color: Colors.amber.shade50,
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(color: Colors.amber.shade100),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.notifications_off_outlined, size: 18.0, color: Colors.amber.shade800),
+            const SizedBox(width: 8.0),
+            Expanded(
+              child: Text(
+                'Notificações desativadas',
+                style: TextStyle(fontSize: 13.0, color: Colors.grey.shade800),
+              ),
+            ),
+            TextButton(
+              onPressed: _handleEnableNotifications,
+              child: Text(
+                'Ativar',
+                style: TextStyle(
+                  color: Colors.green.shade700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Organiza as notificações em grupos "Hoje", "Ontem" e "Anteriores", intercalando os cabeçalhos
+  // (String) com as notificações; grupos vazios não aparecem.
+  List<Object> _groupByDay(List<NotificationModel> notifications) {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final yesterday = today.subtract(const Duration(days: 1));
+
+    String labelFor(NotificationModel notification) {
+      final day = DateUtils.dateOnly(notification.createdAt.toLocal());
+      if (!day.isBefore(today)) return 'Hoje';
+      if (!day.isBefore(yesterday)) return 'Ontem';
+      return 'Anteriores';
+    }
+
+    final entries = <Object>[];
+    String? currentLabel;
+    for (final notification in notifications) {
+      final label = labelFor(notification);
+      if (label != currentLabel) {
+        entries.add(label);
+        currentLabel = label;
+      }
+      entries.add(notification);
+    }
+    return entries;
+  }
+
+  // Constrói o cabeçalho pequeno de um grupo de notificações.
+  Widget _buildGroupHeader(String label) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 8.0),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12.0,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey.shade600,
+        ),
       ),
     );
   }
@@ -201,11 +232,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> with WidgetsB
         } else if (notifications.isEmpty) {
           body = _buildEmptyState();
         } else {
+          final entries = _groupByDay(notifications);
           body = ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: notifications.length,
+            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
+            itemCount: entries.length,
             itemBuilder: (context, index) {
-              final notification = notifications[index];
+              final entry = entries[index];
+              if (entry is String) return _buildGroupHeader(entry);
+
+              final notification = entry as NotificationModel;
               return NotificationTile(
                 notification: notification,
                 onTap: () => _handleTap(notification),
@@ -220,15 +255,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> with WidgetsB
             title: 'Notificações',
             actions: [
               if (hasUnread)
-                TextButton(
+                IconButton(
+                  tooltip: 'Marcar todas como lidas',
+                  icon: Icon(Icons.done_all, color: Colors.green.shade700),
                   onPressed: () => _notificationService.markAllAsRead(_userId!),
-                  child: Text(
-                    'Marcar todas como lidas',
-                    style: TextStyle(
-                      color: Colors.green.shade700,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                 ),
               const SizedBox(width: 8.0),
             ],

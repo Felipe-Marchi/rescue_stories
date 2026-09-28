@@ -11,6 +11,7 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import '../utils/app_feedback.dart';
+import '../utils/ngo_name_words.dart';
 import '../utils/notification_permission.dart';
 import '../widgets/info_banner.dart';
 
@@ -143,7 +144,8 @@ class _NgoFormScreenState extends State<NgoFormScreen> {
           await showFeedbackDialog(
             context,
             title: 'Cadastro enviado para análise!',
-            message: 'Nossa equipe vai analisar os dados da ${_nameController.text.trim()}. '
+            message: 'Nossa equipe vai analisar os dados '
+                '${NgoNameWords.from(_nameController.text, noun: 'instituição').withDe}. '
                 'Avisaremos você pelo app.',
             type: InfoBannerType.success,
           );

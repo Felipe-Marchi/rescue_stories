@@ -1,6 +1,7 @@
 import 'package:url_launcher/url_launcher.dart';
 import 'animal_gender_words.dart';
 import 'formatters.dart';
+import 'ngo_name_words.dart';
 
 // Normaliza um telefone brasileiro para o formato internacional (55 + DDD + número) ou retorna null se inválido.
 String? normalizeBrPhone(String phone) {
@@ -45,9 +46,10 @@ String adoptionRequestReplyMessage({
   required String animalGender,
 }) {
   final words = AnimalGenderWords.fromGender(animalGender);
+  final ngo = NgoNameWords.from(ngoName);
 
   return 'Olá, $adopterName! Tudo bem?\n\n'
-      'Aqui é da $ngoName. Recebemos sua solicitação de adoção ${words.contraction} $animalName '
+      'Aqui é ${ngo.withDe}. Recebemos sua solicitação de adoção ${words.contraction} $animalName '
       'pelo aplicativo Histórias de Resgate e ficamos muito felizes com o seu interesse!\n\n'
       'Podemos conversar sobre os próximos passos?';
 }

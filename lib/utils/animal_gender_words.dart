@@ -2,6 +2,7 @@
 class AnimalGenderWords {
   final String article;
   final String contraction;
+  final String inContraction;
   final String pronoun;
   final String adoptVerb;
   final String subject;
@@ -9,6 +10,7 @@ class AnimalGenderWords {
   const AnimalGenderWords({
     required this.article,
     required this.contraction,
+    required this.inContraction,
     required this.pronoun,
     required this.adoptVerb,
     required this.subject,
@@ -20,6 +22,7 @@ class AnimalGenderWords {
       return const AnimalGenderWords(
         article: 'a',
         contraction: 'da',
+        inContraction: 'na',
         pronoun: 'por ela',
         adoptVerb: 'adotá-la',
         subject: 'ela',
@@ -28,6 +31,7 @@ class AnimalGenderWords {
     return const AnimalGenderWords(
       article: 'o',
       contraction: 'do',
+      inContraction: 'no',
       pronoun: 'por ele',
       adoptVerb: 'adotá-lo',
       subject: 'ele',

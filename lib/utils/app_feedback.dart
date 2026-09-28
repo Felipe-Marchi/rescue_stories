@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/info_banner.dart';
 import '../widgets/primary_button.dart';
-import '../widgets/secondary_button.dart';
 
 // Monta o aviso flutuante padronizado do aplicativo, com ícone e cores do tipo informado.
 // Use diretamente com um ScaffoldMessenger capturado antes de operações assíncronas.
@@ -66,23 +65,28 @@ Future<bool> showFeedbackDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
         ),
+        iconPadding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 12.0),
+        titlePadding: const EdgeInsets.fromLTRB(24.0, 0.0, 24.0, 8.0),
+        contentPadding: const EdgeInsets.fromLTRB(24.0, 0.0, 24.0, 20.0),
         icon: Container(
-          width: 72.0,
-          height: 72.0,
+          width: 64.0,
+          height: 64.0,
           decoration: BoxDecoration(
             color: style.backgroundColor,
             shape: BoxShape.circle,
           ),
-          child: Icon(icon ?? style.icon, color: style.accentColor, size: 40.0),
+          child: Icon(icon ?? style.icon, color: style.accentColor, size: 36.0),
         ),
         title: Text(
           title,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 20.0,
+            fontSize: 19.0,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
@@ -97,21 +101,39 @@ Future<bool> showFeedbackDialog(
           ),
         ),
         actionsAlignment: MainAxisAlignment.center,
-        actionsPadding: const EdgeInsets.fromLTRB(24.0, 0.0, 24.0, 20.0),
+        actionsPadding: const EdgeInsets.fromLTRB(24.0, 0.0, 24.0, 16.0),
         actions: [
+          // Com duas opções, empilha a ação principal e a secundária em largura total.
           if (cancelLabel != null)
-            SecondaryButton(
-              text: cancelLabel,
+            SizedBox(
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  PrimaryButton(
+                    text: confirmLabel,
+                    onPressed: () => Navigator.pop(context, true),
+                  ),
+                  const SizedBox(height: 4.0),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: Text(
+                      cancelLabel,
+                      style: TextStyle(
+                        fontSize: 15.0,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            PrimaryButton(
+              text: confirmLabel,
               compact: true,
-              color: Colors.grey.shade400,
-              textColor: Colors.black87,
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(context, true),
             ),
-          PrimaryButton(
-            text: confirmLabel,
-            compact: true,
-            onPressed: () => Navigator.pop(context, true),
-          ),
         ],
       );
     },

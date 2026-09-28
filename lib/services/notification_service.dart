@@ -6,6 +6,7 @@ import '../models/enums/notification_type.dart';
 import '../models/enums/user_role.dart';
 import '../models/notification_model.dart';
 import '../utils/animal_gender_words.dart';
+import '../utils/ngo_name_words.dart';
 import '../utils/reminder_config.dart';
 import 'auth_service.dart';
 
@@ -173,12 +174,13 @@ class NotificationService {
     required AnimalModel animal,
   }) {
     final words = AnimalGenderWords.fromGender(animal.gender);
+    final ngo = NgoNameWords.from(ngoName);
     return create(
       userId: adopterId,
       type: NotificationType.adoptionRequestSent,
       relatedId: animal.id,
       title: 'Solicitação enviada',
-      body: 'A $ngoName recebeu seu interesse em ${words.article} ${animal.name} '
+      body: '${ngo.startOfSentence} recebeu seu interesse ${words.inContraction} ${animal.name} '
           'e vai entrar em contato pelo WhatsApp.',
     );
   }
@@ -190,12 +192,13 @@ class NotificationService {
     required AnimalModel animal,
   }) {
     final words = AnimalGenderWords.fromGender(animal.gender);
+    final ngo = NgoNameWords.from(ngoName);
     return create(
       userId: adopterId,
       type: NotificationType.adoptionApproved,
       relatedId: animal.id,
       title: 'Adoção aprovada!',
-      body: 'Parabéns! Sua adoção ${words.contraction} ${animal.name} foi aprovada pela $ngoName.',
+      body: 'Parabéns! Sua adoção ${words.contraction} ${animal.name} foi aprovada ${ngo.withPor}.',
     );
   }
 
@@ -249,6 +252,7 @@ class NotificationService {
     required String ngoName,
   }) async {
     try {
+      final ngo = NgoNameWords.from(ngoName, noun: 'instituição');
       final adminIds = await AuthService().getAdminIds();
       await Future.wait(adminIds.map((adminId) {
         return create(
@@ -256,7 +260,7 @@ class NotificationService {
           type: NotificationType.ngoSubmitted,
           relatedId: ngoId,
           title: 'Nova instituição para análise',
-          body: 'A $ngoName enviou os dados de cadastro e aguarda aprovação.',
+          body: '${ngo.startOfSentence} enviou os dados de cadastro e aguarda aprovação.',
         );
       }));
     } catch (e) {
@@ -270,12 +274,13 @@ class NotificationService {
     required String ngoId,
     required String ngoName,
   }) {
+    final ngo = NgoNameWords.from(ngoName, noun: 'instituição');
     return create(
       userId: representativeId,
       type: NotificationType.ngoApproved,
       relatedId: ngoId,
       title: 'Cadastro aprovado!',
-      body: 'A $ngoName foi aprovada. Agora você já pode publicar animais para adoção.',
+      body: '${ngo.startOfSentence} foi aprovad${ngo.ending}. Agora você já pode publicar animais para adoção.',
     );
   }
 
@@ -285,12 +290,13 @@ class NotificationService {
     required String ngoId,
     required String ngoName,
   }) {
+    final ngo = NgoNameWords.from(ngoName, noun: 'instituição');
     return create(
       userId: representativeId,
       type: NotificationType.ngoRejected,
       relatedId: ngoId,
       title: 'Sobre o cadastro da sua instituição',
-      body: 'Não foi possível aprovar o cadastro da $ngoName desta vez. '
+      body: 'Não foi possível aprovar o cadastro ${ngo.withDe} desta vez. '
           'Confira se os dados estão corretos e entre em contato com a equipe do Histórias de Resgate.',
     );
   }

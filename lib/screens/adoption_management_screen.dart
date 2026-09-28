@@ -99,7 +99,7 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
 
     final message = adoptionRequestReplyMessage(
       adopterName: adopter?.name ?? '',
-      ngoName: (ngo != null && ngo.name.isNotEmpty) ? ngo.name : 'ONG responsável',
+      ngoName: (ngo != null && ngo.name.isNotEmpty) ? ngo.name : 'responsável',
       animalName: animal?.name ?? 'pet',
       animalGender: animal?.gender ?? 'Macho',
     );

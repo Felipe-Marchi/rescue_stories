@@ -91,7 +91,7 @@ class AdoptionService {
         final ngo = await _ngoService.getNgoById(request.ngoId);
         await _notificationService.notifyAdoptionApproved(
           adopterId: request.adopterId,
-          ngoName: (ngo != null && ngo.name.isNotEmpty) ? ngo.name : 'ONG responsável',
+          ngoName: (ngo != null && ngo.name.isNotEmpty) ? ngo.name : 'responsável',
           animal: animal,
         );
       } else if (status == AdoptionStatus.rejected) {
