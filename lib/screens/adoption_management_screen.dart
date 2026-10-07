@@ -197,15 +197,18 @@ class _AdoptionManagementScreenState extends State<AdoptionManagementScreen> {
                   // Exibe a quantidade de pendentes com a mesma pílula usada no painel da ONG.
                   Tab(
                     icon: const Icon(Icons.pending_actions),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('Pendentes'),
-                        if (pendingCount > 0) ...[
-                          const SizedBox(width: 6.0),
-                          CountPill(count: pendingCount),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Pendentes'),
+                          if (pendingCount > 0) ...[
+                            const SizedBox(width: 4.0),
+                            CountPill(count: pendingCount),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                   const Tab(
