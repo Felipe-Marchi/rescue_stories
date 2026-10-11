@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/pet_timeline_post_model.dart';
 import 'storage_service.dart';
 
-// Gerencia a gravação, leitura reativa e exclusão de postagens na subcoleção 'timeline' de cada animal.
+// Gerencia a gravação, leitura reativa, atualização e exclusão de postagens na subcoleção 'timeline' de cada animal.
 class PetTimelineService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final StorageService _storageService = StorageService();
@@ -15,6 +15,14 @@ class PetTimelineService {
   // Grava uma nova atualização de história/foto na subcoleção do animal.
   Future<void> addPost(PetTimelinePostModel post) async {
     await _getTimelineCollection(post.animalId).add(post.toMap());
+  }
+
+  // Atualiza uma postagem existente na linha do tempo e remove a foto antiga do Storage se alterada.
+  Future<void> updatePost(PetTimelinePostModel post, {String? oldImageUrl}) async {
+    if (oldImageUrl != null && oldImageUrl.isNotEmpty && oldImageUrl != post.imageUrl) {
+      await _storageService.deleteImageByUrl(oldImageUrl);
+    }
+    await _getTimelineCollection(post.animalId).doc(post.id).update(post.toMap());
   }
 
   // Recupera em tempo real a lista de postagens da linha do tempo do animal em ordem cronológica.

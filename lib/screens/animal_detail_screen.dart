@@ -2,25 +2,30 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/animal_model.dart';
 import '../models/adoption_request_model.dart';
+import '../models/pet_timeline_post_model.dart';
 import '../models/enums/adoption_status.dart';
+import '../models/ngo_model.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/ngo_service.dart';
 import '../services/adoption_service.dart';
 import '../services/notification_service.dart';
+import '../services/pet_timeline_service.dart';
 import '../utils/whatsapp.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_network_image.dart';
 import '../widgets/gender_tag.dart';
 import '../widgets/info_banner.dart';
 import '../widgets/ngo_card.dart';
+import '../widgets/pet_timeline_card.dart';
 import '../widgets/primary_button.dart';
 import '../utils/app_feedback.dart';
 import '../utils/notification_permission.dart';
 import 'login_form_screen.dart';
 import 'profile_form_screen.dart';
+import 'timeline_post_screen.dart';
 
-// Renderiza a interface de exibição detalhada dos dados de um animal e o acionamento de adoção.
+// Renderiza a interface de exibição detalhada dos dados de um animal, linha do tempo e acionamento de adoção.
 class AnimalDetailScreen extends StatefulWidget {
   final AnimalModel animal;
 
@@ -38,6 +43,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
   final NgoService _ngoService = NgoService();
   final AdoptionService _adoptionService = AdoptionService();
   final NotificationService _notificationService = NotificationService();
+  final PetTimelineService _petTimelineService = PetTimelineService();
 
   bool _isLoading = false;
 
@@ -259,6 +265,148 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
     );
   }
 
+  // Constrói a seção de Linha do Tempo / Histórias do Pet com a lista reativa de postagens.
+  Widget _buildTimelineSection(BuildContext context) {
+    final user = _authService.currentUser;
+
+    return FutureBuilder<NgoModel?>(
+      future: _ngoService.getNgoById(widget.animal.ngoId),
+      builder: (context, ngoSnapshot) {
+        final ngo = ngoSnapshot.data;
+        final isNgoOwner = user != null && ngo != null && ngo.ownerId == user.uid;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Linha do Tempo & Histórias',
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                // Exibe o botão de adicionar foto apenas para a ONG proprietária do animal.
+                if (isNgoOwner)
+                  IconButton(
+                    icon: const Icon(Icons.add_a_photo, color: Colors.green),
+                    tooltip: 'Adicionar Foto / Atualização',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TimelinePostScreen(
+                            animalId: widget.animal.id,
+                            animalName: widget.animal.name,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12.0),
+
+            StreamBuilder<List<PetTimelinePostModel>>(
+              stream: _petTimelineService.getTimelineByAnimal(widget.animal.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final posts = snapshot.data ?? [];
+
+                if (posts.isEmpty) {
+                  // Se for a ONG dona do pet, exibe um incentivo para publicar fotos.
+                  if (isNgoOwner) {
+                    return Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12.0),
+                        border: Border.all(color: Colors.green.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.add_a_photo_outlined, color: Colors.green, size: 28),
+                          const SizedBox(width: 12.0),
+                          Expanded(
+                            child: Text(
+                              'Sua instituição ainda não adicionou fotos extras para este pet. Clique no ícone de câmera acima para publicar!',
+                              style: TextStyle(fontSize: 13.0, color: Colors.green.shade900),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Para visitantes e adotantes, se não houver fotos extras, mantém a tela limpa.
+                  return const SizedBox.shrink();
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: posts.length,
+                  itemBuilder: (context, index) {
+                    final post = posts[index];
+                    final canManagePost = user != null && user.uid == post.authorId;
+
+                    return PetTimelineCard(
+                      post: post,
+                      animalName: widget.animal.name,
+                      canManage: canManagePost,
+                      onEdit: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TimelinePostScreen(
+                              animalId: widget.animal.id,
+                              animalName: widget.animal.name,
+                              postToEdit: post,
+                            ),
+                          ),
+                        );
+                      },
+                      onDelete: () async {
+                        try {
+                          await _petTimelineService.deletePost(
+                            widget.animal.id,
+                            post.id,
+                            imageUrl: post.imageUrl,
+                          );
+                          if (context.mounted) {
+                            showAppSnackBar(
+                              context,
+                              'Publicação removida da história do pet.',
+                              type: InfoBannerType.success,
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            showAppSnackBar(
+                              context,
+                              'Não conseguimos remover a publicação. Tente novamente.',
+                              type: InfoBannerType.error,
+                            );
+                          }
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -313,10 +461,15 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
                   // Exibe as informações da ONG responsável através do componente isolado.
                   NgoCard(ngoId: widget.animal.ngoId),
 
-                  const SizedBox(height: 40.0),
+                  const SizedBox(height: 32.0),
 
-                  // Exibe o botão de ação ou a indicação de perfil não adotante.
+                  // Exibe o botão de ação "Quero Adotar" (ou indicação de perfil não adotante) ANTES da linha do tempo.
                   _buildAdoptionActionButton(context),
+
+                  const SizedBox(height: 32.0),
+
+                  // Exibe a Linha do Tempo e Histórias publicadas do pet.
+                  _buildTimelineSection(context),
                 ],
               ),
             ),
