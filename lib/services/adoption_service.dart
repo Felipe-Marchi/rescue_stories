@@ -33,6 +33,22 @@ class AdoptionService {
     });
   }
 
+  // Recupera a lista de solicitações de adoção enviadas por um adotante específico em tempo real.
+  Stream<List<AdoptionRequestModel>> streamRequestsByAdopter(String adopterId) {
+    return _requestsCollection
+        .where('adopterId', isEqualTo: adopterId)
+        .snapshots()
+        .map((snapshot) {
+      final list = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return AdoptionRequestModel.fromMap(doc.id, data);
+      }).toList();
+
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
+    });
+  }
+
   // Recupera em tempo real a quantidade de solicitações pendentes de uma ONG.
   Stream<int> streamPendingCountByNgo(String ngoId) {
     return _requestsCollection

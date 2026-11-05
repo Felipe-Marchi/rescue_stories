@@ -17,6 +17,8 @@ import 'animal_form_screen.dart';
 import 'ngo_form_screen.dart';
 import 'adoption_management_screen.dart';
 import 'profile_form_screen.dart';
+import 'adopter_requests_screen.dart';
+import 'adopter_pets_screen.dart';
 
 // Renderiza a interface de perfil do usuário autenticado com opções de gerenciamento de conta.
 class ProfileScreen extends StatefulWidget {
@@ -110,6 +112,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.all(16.0),
           child: child,
         ),
+      ),
+    );
+  }
+
+  // Constrói o painel de atalhos do adotante (minhas solicitações e pets adotados).
+  Widget _buildAdopterPanel(BuildContext context, UserModel userModel) {
+    return _buildPanelSurface(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.pets,
+                color: Colors.green,
+                size: 28,
+              ),
+              SizedBox(width: 8.0),
+              Text(
+                'Painel do Adotante',
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12.0),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Minhas Solicitações'),
+            subtitle: const Text('Acompanhar o status das intenções enviadas'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdopterRequestsScreen(adopterId: userModel.id),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Meus Pets Adotados'),
+            subtitle: const Text('Ver animais adotados e postar fotos no novo lar'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdopterPetsScreen(adopterId: userModel.id),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -404,6 +465,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                       _buildEditProfileButton(userModel),
                       const SizedBox(height: 24.0),
+
+                      // Exibe o painel do adotante caso o usuário seja Adotante.
+                      if (userModel.isAdopter) _buildAdopterPanel(context, userModel),
 
                       // Exibe o painel administrativo caso o usuário seja Admin.
                       if (userModel.isAdmin) _buildAdminPanel(context),

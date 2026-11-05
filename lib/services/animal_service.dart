@@ -68,6 +68,19 @@ class AnimalService {
     });
   }
 
+  // Recupera a lista de animais adotados por um adotante específico em tempo real.
+  Stream<List<AnimalModel>> getAnimalsByAdopter(String adopterId) {
+    return _animalsCollection
+        .where('adopterId', isEqualTo: adopterId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => AnimalModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+          .where((animal) => animal.isAdopted)
+          .toList();
+    });
+  }
+
   // Gera localmente um novo identificador de documento para um animal, sem acessar a rede.
   String newAnimalId() => _animalsCollection.doc().id;
 
