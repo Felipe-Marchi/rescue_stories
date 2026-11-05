@@ -264,10 +264,29 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
           );
         }
 
-        return PrimaryButton(
-          text: 'Quero Adotar',
-          isLoading: _isLoading,
-          onPressed: () => _handleAdoption(context),
+        // Monitora em tempo real se o adotante logado já possui uma solicitação pendente para este animal.
+        return StreamBuilder<bool>(
+          stream: _adoptionService.streamHasPendingRequest(
+            animalId: widget.animal.id,
+            adopterId: user.uid,
+          ),
+          builder: (context, pendingSnapshot) {
+            final hasPending = pendingSnapshot.data ?? false;
+
+            if (hasPending) {
+              return const InfoBanner(
+                type: InfoBannerType.warning,
+                icon: Icons.hourglass_top,
+                message: 'Sua solicitação de adoção para este pet já foi enviada e está em análise com a ONG.',
+              );
+            }
+
+            return PrimaryButton(
+              text: 'Quero Adotar',
+              isLoading: _isLoading,
+              onPressed: () => _handleAdoption(context),
+            );
+          },
         );
       },
     );
@@ -285,157 +304,159 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
         final isPetAdopter = user != null && widget.animal.isAdopted && widget.animal.adopterId == user.uid;
         final canAddTimelinePhoto = isNgoOwner || isPetAdopter;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Linha do Tempo & Histórias',
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+        return StreamBuilder<List<PetTimelinePostModel>>(
+          stream: _petTimelineService.getTimelineByAnimal(widget.animal.id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final posts = snapshot.data ?? [];
+
+            // Se não houver fotos extras e o usuário não for a ONG nem o Adotante do pet, oculta a seção inteira
+            if (posts.isEmpty && !canAddTimelinePhoto) {
+              return const SizedBox.shrink();
+            }
+
+            Widget emptyContent = const SizedBox.shrink();
+            if (posts.isEmpty) {
+              if (isPetAdopter) {
+                emptyContent = Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(color: Colors.blue.shade200),
                   ),
-                ),
-                // Exibe o botão de adicionar foto para a ONG proprietária ou para o Adotante do pet.
-                if (canAddTimelinePhoto)
-                  IconButton(
-                    icon: const Icon(Icons.add_a_photo, color: Colors.green),
-                    tooltip: 'Adicionar Foto / Atualização',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TimelinePostScreen(
-                            animalId: widget.animal.id,
-                            animalName: widget.animal.name,
-                          ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.favorite_outline, color: Colors.blue, size: 28),
+                      const SizedBox(width: 12.0),
+                      Expanded(
+                        child: Text(
+                          'Você é o novo tutor de ${widget.animal.name}! Clique no ícone de câmera acima para publicar a primeira foto dele no novo lar! 🎉',
+                          style: TextStyle(fontSize: 13.0, color: Colors.blue.shade900),
                         ),
+                      ),
+                    ],
+                  ),
+                );
+              } else if (isNgoOwner) {
+                emptyContent = Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(color: Colors.green.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.add_a_photo_outlined, color: Colors.green, size: 28),
+                      const SizedBox(width: 12.0),
+                      Expanded(
+                        child: Text(
+                          'Sua instituição ainda não adicionou fotos extras para este pet. Clique no ícone de câmera acima para publicar!',
+                          style: TextStyle(fontSize: 13.0, color: Colors.green.shade900),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Linha do Tempo & Histórias',
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    // Exibe o botão de adicionar foto apenas para a ONG proprietária ou para o Adotante do pet.
+                    if (canAddTimelinePhoto)
+                      IconButton(
+                        icon: const Icon(Icons.add_a_photo, color: Colors.green),
+                        tooltip: 'Adicionar Foto / Atualização',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TimelinePostScreen(
+                                animalId: widget.animal.id,
+                                animalName: widget.animal.name,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+                if (posts.isEmpty)
+                  emptyContent
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: posts.length,
+                    itemBuilder: (context, index) {
+                      final post = posts[index];
+                      final canManagePost = user != null && user.uid == post.authorId;
+
+                      return PetTimelineCard(
+                        post: post,
+                        animalName: widget.animal.name,
+                        canManage: canManagePost,
+                        onEdit: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TimelinePostScreen(
+                                animalId: widget.animal.id,
+                                animalName: widget.animal.name,
+                                postToEdit: post,
+                              ),
+                            ),
+                          );
+                        },
+                        onDelete: () async {
+                          try {
+                            await _petTimelineService.deletePost(
+                              widget.animal.id,
+                              post.id,
+                              imageUrl: post.imageUrl,
+                            );
+                            if (context.mounted) {
+                              showAppSnackBar(
+                                context,
+                                'Publicação removida da história do pet.',
+                                type: InfoBannerType.success,
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              showAppSnackBar(
+                                context,
+                                'Não conseguimos remover a publicação. Tente novamente.',
+                                type: InfoBannerType.error,
+                              );
+                            }
+                          }
+                        },
                       );
                     },
                   ),
+                const SizedBox(height: 32.0),
               ],
-            ),
-            const SizedBox(height: 12.0),
-
-            StreamBuilder<List<PetTimelinePostModel>>(
-              stream: _petTimelineService.getTimelineByAnimal(widget.animal.id),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final posts = snapshot.data ?? [];
-
-                if (posts.isEmpty) {
-                  // Se for o Adotante do pet, exibe o convite especial para postar a primeira foto no novo lar.
-                  if (isPetAdopter) {
-                    return Container(
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(color: Colors.blue.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.favorite_outline, color: Colors.blue, size: 28),
-                          const SizedBox(width: 12.0),
-                          Expanded(
-                            child: Text(
-                              'Você é o novo tutor de ${widget.animal.name}! Clique no ícone de câmera acima para publicar a primeira foto dele no novo lar! 🎉',
-                              style: TextStyle(fontSize: 13.0, color: Colors.blue.shade900),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  // Se for a ONG dona do pet, exibe um incentivo para publicar fotos.
-                  if (isNgoOwner) {
-                    return Container(
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(color: Colors.green.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.add_a_photo_outlined, color: Colors.green, size: 28),
-                          const SizedBox(width: 12.0),
-                          Expanded(
-                            child: Text(
-                              'Sua instituição ainda não adicionou fotos extras para este pet. Clique no ícone de câmera acima para publicar!',
-                              style: TextStyle(fontSize: 13.0, color: Colors.green.shade900),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  // Para visitantes e outros adotantes, se não houver fotos extras, mantém a tela limpa.
-                  return const SizedBox.shrink();
-                }
-
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: posts.length,
-                  itemBuilder: (context, index) {
-                    final post = posts[index];
-                    final canManagePost = user != null && user.uid == post.authorId;
-
-                    return PetTimelineCard(
-                      post: post,
-                      animalName: widget.animal.name,
-                      canManage: canManagePost,
-                      onEdit: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TimelinePostScreen(
-                              animalId: widget.animal.id,
-                              animalName: widget.animal.name,
-                              postToEdit: post,
-                            ),
-                          ),
-                        );
-                      },
-                      onDelete: () async {
-                        try {
-                          await _petTimelineService.deletePost(
-                            widget.animal.id,
-                            post.id,
-                            imageUrl: post.imageUrl,
-                          );
-                          if (context.mounted) {
-                            showAppSnackBar(
-                              context,
-                              'Publicação removida da história do pet.',
-                              type: InfoBannerType.success,
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            showAppSnackBar(
-                              context,
-                              'Não conseguimos remover a publicação. Tente novamente.',
-                              type: InfoBannerType.error,
-                            );
-                          }
-                        }
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -500,9 +521,9 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
                   // Exibe o botão de ação "Quero Adotar" (ou indicação de perfil não adotante) ANTES da linha do tempo.
                   _buildAdoptionActionButton(context),
 
-                  const SizedBox(height: 32.0),
+                  const SizedBox(height: 24.0),
 
-                  // Exibe a Linha do Tempo e Histórias publicadas do pet.
+                  // Exibe a Linha do Tempo e Histórias publicadas do pet (se houver fotos ou se for o autor autorzado).
                   _buildTimelineSection(context),
                 ],
               ),

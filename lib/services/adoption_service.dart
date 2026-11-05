@@ -42,6 +42,19 @@ class AdoptionService {
         .map((snapshot) => snapshot.size);
   }
 
+  // Monitora em tempo real se o adotante possui uma solicitação de adoção pendente para o animal informado.
+  Stream<bool> streamHasPendingRequest({
+    required String animalId,
+    required String adopterId,
+  }) {
+    return _requestsCollection
+        .where('animalId', isEqualTo: animalId)
+        .where('adopterId', isEqualTo: adopterId)
+        .where('status', isEqualTo: AdoptionStatus.pending.name)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.isNotEmpty);
+  }
+
   // Recupera a quantidade de solicitações pendentes de uma ONG criadas há mais tempo que o prazo informado.
   Future<int> countPendingOlderThan(String ngoId, Duration threshold) async {
     final snapshot = await _requestsCollection
