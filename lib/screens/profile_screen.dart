@@ -326,30 +326,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 12.0),
 
-          // Destaca as solicitações pendentes no topo do painel, com atalho para respondê-las.
-          StreamBuilder<int>(
-            stream: pendingCountStream,
-            builder: (context, snapshot) {
-              final count = snapshot.data ?? 0;
-              if (count == 0) return const SizedBox.shrink();
-
-              final title = count == 1
-                  ? '1 solicitação aguardando resposta'
-                  : '$count solicitações aguardando resposta';
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: InfoBanner(
-                  type: InfoBannerType.warning,
-                  icon: Icons.pending_actions,
-                  title: title,
-                  message: 'Toque para ver os interessados e responder.',
-                  onTap: () => _openAdoptionManagement(userModel.ngoId!),
-                ),
-              );
-            },
-          ),
-
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Solicitações de Adoção'),
