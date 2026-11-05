@@ -226,6 +226,14 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
 
   // Constrói o elemento visual do botão de adoção ou mensagem explicativa conforme o perfil do usuário.
   Widget _buildAdoptionActionButton(BuildContext context) {
+    if (widget.animal.isAdopted) {
+      return const InfoBanner(
+        type: InfoBannerType.success,
+        icon: Icons.celebration,
+        message: 'Este pet já encontrou um novo lar e foi adotado com sucesso! 🎉',
+      );
+    }
+
     final user = _authService.currentUser;
 
     if (user == null) {
@@ -274,6 +282,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
       builder: (context, ngoSnapshot) {
         final ngo = ngoSnapshot.data;
         final isNgoOwner = user != null && ngo != null && ngo.ownerId == user.uid;
+        final isPetAdopter = user != null && widget.animal.isAdopted && widget.animal.adopterId == user.uid;
+        final canAddTimelinePhoto = isNgoOwner || isPetAdopter;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,8 +299,8 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
                     color: Colors.black87,
                   ),
                 ),
-                // Exibe o botão de adicionar foto apenas para a ONG proprietária do animal.
-                if (isNgoOwner)
+                // Exibe o botão de adicionar foto para a ONG proprietária ou para o Adotante do pet.
+                if (canAddTimelinePhoto)
                   IconButton(
                     icon: const Icon(Icons.add_a_photo, color: Colors.green),
                     tooltip: 'Adicionar Foto / Atualização',
@@ -320,6 +330,30 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
                 final posts = snapshot.data ?? [];
 
                 if (posts.isEmpty) {
+                  // Se for o Adotante do pet, exibe o convite especial para postar a primeira foto no novo lar.
+                  if (isPetAdopter) {
+                    return Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(12.0),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.favorite_outline, color: Colors.blue, size: 28),
+                          const SizedBox(width: 12.0),
+                          Expanded(
+                            child: Text(
+                              'Você é o novo tutor de ${widget.animal.name}! Clique no ícone de câmera acima para publicar a primeira foto dele no novo lar! 🎉',
+                              style: TextStyle(fontSize: 13.0, color: Colors.blue.shade900),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
                   // Se for a ONG dona do pet, exibe um incentivo para publicar fotos.
                   if (isNgoOwner) {
                     return Container(
@@ -344,7 +378,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> with WidgetsBin
                     );
                   }
 
-                  // Para visitantes e adotantes, se não houver fotos extras, mantém a tela limpa.
+                  // Para visitantes e outros adotantes, se não houver fotos extras, mantém a tela limpa.
                   return const SizedBox.shrink();
                 }
 

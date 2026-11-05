@@ -11,7 +11,7 @@ import 'login_form_screen.dart';
 import 'profile_screen.dart';
 import 'animal_form_screen.dart';
 
-// Apresenta a tela principal contendo a vitrine de animais disponíveis para resgate.
+// Apresenta a tela principal contendo as abas de animais disponíveis e histórias de sucesso (adotados).
 class HomePage extends StatelessWidget {
   HomePage({super.key});
 
@@ -71,49 +71,93 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  // Constrói a lista reativa de animais para a aba selecionada.
+  Widget _buildAnimalList(Stream<List<AnimalModel>> stream, String emptyMessage) {
+    return StreamBuilder<List<AnimalModel>>(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Center(child: Text('Erro ao carregar os dados.'));
+        }
+
+        final animals = snapshot.data ?? [];
+
+        if (animals.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Text(
+                emptyMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16.0, color: Colors.grey),
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          itemCount: animals.length,
+          itemBuilder: (context, index) {
+            return AnimalCard(animal: animals[index]);
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: CustomAppBar(
-        title: 'Histórias de Resgate',
-        isMainPage: true,
-        actions: [
-          // Exibe o sino de notificações apenas para usuários autenticados.
-          const NotificationBell(),
-          IconButton(
-            icon: const Icon(Icons.account_circle, color: Colors.green, size: 32.0),
-            onPressed: () => _handleProfileNavigation(context),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade100,
+        appBar: CustomAppBar(
+          title: 'Histórias de Resgate',
+          isMainPage: true,
+          bottom: const TabBar(
+            labelColor: Colors.green,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: Colors.green,
+            tabs: [
+              Tab(
+                icon: Icon(Icons.pets),
+                text: 'Disponíveis',
+              ),
+              Tab(
+                icon: Icon(Icons.celebration),
+                text: 'Adotados',
+              ),
+            ],
           ),
-          const SizedBox(width: 8.0),
-        ],
+          actions: [
+            // Exibe o sino de notificações apenas para usuários autenticados.
+            const NotificationBell(),
+            IconButton(
+              icon: const Icon(Icons.account_circle, color: Colors.green, size: 32.0),
+              onPressed: () => _handleProfileNavigation(context),
+            ),
+            const SizedBox(width: 8.0),
+          ],
+        ),
+        body: TabBarView(
+          children: [
+            _buildAnimalList(
+              _animalService.getAnimals(),
+              'Nenhum animal disponível no momento.',
+            ),
+            _buildAnimalList(
+              _animalService.getAdoptedAnimals(),
+              'Nenhum animal foi marcado como adotado ainda.',
+            ),
+          ],
+        ),
+        floatingActionButton: _buildFloatingActionButton(),
       ),
-      body: StreamBuilder<List<AnimalModel>>(
-        stream: _animalService.getAnimals(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return const Center(child: Text('Erro ao carregar os dados.'));
-          }
-
-          final animals = snapshot.data ?? [];
-
-          if (animals.isEmpty) {
-            return const Center(child: Text('Nenhum animal cadastrado ainda.'));
-          }
-
-          return ListView.builder(
-            itemCount: animals.length,
-            itemBuilder: (context, index) {
-              return AnimalCard(animal: animals[index]);
-            },
-          );
-        },
-      ),
-      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 }

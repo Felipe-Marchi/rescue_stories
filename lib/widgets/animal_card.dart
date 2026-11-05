@@ -74,7 +74,30 @@ class AnimalCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4.0),
-                GenderTag(gender: animal.gender),
+                Row(
+                  children: [
+                    GenderTag(gender: animal.gender),
+                    if (animal.isAdopted) ...[
+                      const SizedBox(width: 6.0),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(6.0),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Text(
+                          'Adotado 🎉',
+                          style: TextStyle(
+                            fontSize: 11.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           ),

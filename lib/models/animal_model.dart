@@ -1,4 +1,6 @@
-// Representa as informações de um animal disponível para resgate no sistema.
+import 'enums/animal_status.dart';
+
+// Representa as informações de um animal cadastrado no sistema.
 class AnimalModel {
   final String id;
   final String name;
@@ -6,8 +8,10 @@ class AnimalModel {
   final String imageUrl;
   final String ngoId;
   final String gender;
+  final String status;
+  final String? adopterId;
 
-  // Inicializa uma instância da classe com os dados obrigatórios do animal.
+  // Inicializa uma instância da classe com os dados obrigatórios e opcionais do animal.
   AnimalModel({
     required this.id,
     required this.name,
@@ -15,6 +19,8 @@ class AnimalModel {
     required this.imageUrl,
     required this.ngoId,
     required this.gender,
+    this.status = 'available',
+    this.adopterId,
   });
 
   // Converte a instância da classe em um mapa de dados para gravação no Firestore.
@@ -25,6 +31,8 @@ class AnimalModel {
       'imageUrl': imageUrl,
       'ngoId': ngoId,
       'gender': gender,
+      'status': status,
+      'adopterId': adopterId,
     };
   }
 
@@ -37,6 +45,14 @@ class AnimalModel {
       imageUrl: data['imageUrl'] ?? '',
       ngoId: data['ngoId'] ?? '',
       gender: data['gender'] ?? 'Macho',
+      status: data['status'] ?? AnimalStatus.available.name,
+      adopterId: data['adopterId'] as String?,
     );
   }
+
+  // Identifica se o animal está disponível para adoção.
+  bool get isAvailable => status == AnimalStatus.available.name;
+
+  // Identifica se o animal já foi adotado.
+  bool get isAdopted => status == AnimalStatus.adopted.name;
 }

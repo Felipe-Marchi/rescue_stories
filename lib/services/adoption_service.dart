@@ -70,12 +70,17 @@ class AdoptionService {
   }
 
   // Atualiza a situação do pedido de adoção no banco de dados, registrando o momento da decisão,
-  // e avisa o adotante sobre a decisão da ONG.
+  // marca o animal como 'adopted' em caso de aprovação, e avisa o adotante sobre a decisão da ONG.
   Future<void> updateRequestStatus(AdoptionRequestModel request, AdoptionStatus status) async {
     await _requestsCollection.doc(request.id).update({
       'status': status.name,
       'decidedAt': FieldValue.serverTimestamp(),
     });
+
+    // Se a adoção for aprovada pela ONG, marca o animal como adotado e vincula o adotante
+    if (status == AdoptionStatus.approved) {
+      await _animalService.markAsAdopted(request.animalId, request.adopterId);
+    }
 
     unawaited(_notifyAdopterAboutDecision(request, status));
   }

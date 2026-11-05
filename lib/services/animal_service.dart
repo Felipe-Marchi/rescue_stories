@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/animal_model.dart';
+import '../models/enums/animal_status.dart';
 import '../utils/network.dart';
 import 'storage_service.dart';
 
@@ -34,13 +35,23 @@ class AnimalService {
     }
   }
 
-  // Recupera a lista de animais armazenada no banco de dados em tempo real.
+  // Recupera a lista de animais disponíveis para adoção em tempo real.
   Stream<List<AnimalModel>> getAnimals() {
     return _animalsCollection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return AnimalModel.fromMap(doc.id, data);
-      }).toList();
+      return snapshot.docs
+          .map((doc) => AnimalModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+          .where((animal) => animal.isAvailable)
+          .toList();
+    });
+  }
+
+  // Recupera a lista de animais já adotados em tempo real para a aba de Histórias de Sucesso.
+  Stream<List<AnimalModel>> getAdoptedAnimals() {
+    return _animalsCollection.snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => AnimalModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+          .where((animal) => animal.isAdopted)
+          .toList();
     });
   }
 
@@ -64,6 +75,16 @@ class AnimalService {
   // de modo que novas tentativas sobrescrevam o mesmo documento em vez de duplicá-lo.
   Future<void> addAnimal(AnimalModel animal) async {
     await _animalsCollection.doc(animal.id).set(animal.toMap()).timeout(networkTimeout);
+  }
+
+  // Atualiza o status do animal para 'adopted' e vincula o identificador do adotante.
+  Future<void> markAsAdopted(String animalId, String adopterId) async {
+    await _animalsCollection.doc(animalId).update({
+      'status': AnimalStatus.adopted.name,
+      'adopterId': adopterId,
+    }).timeout(networkTimeout);
+
+    _animalCache.remove(animalId);
   }
 
   // Atualiza as informações de um animal existente no banco de dados e atualiza o cache em memória.

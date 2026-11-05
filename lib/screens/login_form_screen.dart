@@ -216,8 +216,8 @@ class _LoginFormScreenState extends State<LoginFormScreen> {
                   ),
                   onPressed: () {
                     _fillQuickCredentials(
-                      email: 'teste.ong@email.com',
-                      password: 'testeapp',
+                      email: 'usuario@email.com',
+                      password: '123456',
                     );
                   },
                   child: const Row(
