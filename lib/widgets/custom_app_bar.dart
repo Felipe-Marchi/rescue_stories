@@ -38,30 +38,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: false,
       // Define a cor da seta de voltar nativa.
       iconTheme: const IconThemeData(color: Colors.black87),
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Exibe o icone da marca apenas se for a tela principal.
-          if (isMainPage) ...[
-            const Icon(
-              Icons.pets,
-              color: Colors.green,
-              size: 28.0,
-            ),
-            const SizedBox(width: 8.0),
-          ],
-          // Na Home, reduz a fonte para o título caber inteiro ao lado das ações;
-          // nas telas internas, corta títulos longos com reticências.
-          Flexible(
-            child: isMainPage
-                ? FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: titleText,
-                  )
-                : titleText,
-          ),
-        ],
+      title: Flexible(
+        child: isMainPage
+            ? FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: titleText,
+              )
+            : titleText,
       ),
       actions: actions,
       bottom: bottom,
